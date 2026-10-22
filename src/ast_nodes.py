@@ -1,4 +1,4 @@
-import dataclass
+from dataclasses import dataclass
 
 
 #Numbers
@@ -9,7 +9,7 @@ class Number:
     col:int
 
 
-#Strings
+#Vaariable
 @dataclass(frozen=True)
 class Var:
     name:str
