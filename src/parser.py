@@ -49,7 +49,7 @@ class Parser:
         if tok.type == TokenType.IDENT:
             return Var(tok.value, tok.line, tok.col)
         if tok.type == TokenType.LPAREN:
-            e = parse_expression()
+            e = self.parse_expression()
             self.expect(TokenType.RPAREN)
             return e
         raise Exception(f"expected expression, got {tok} at line {tok.line}, col {tok.col}")
