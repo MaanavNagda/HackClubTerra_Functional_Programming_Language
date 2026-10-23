@@ -3,10 +3,14 @@ from src.parser import Parser
 from src.evaluator import run_program
 from src.tokens import TokenType
 import pytest
+#Helper function
+def run(source):
+    return run_program(Parser(Lexer(source).tokenize()).parse_program(), {})
 
 #Tests on Lexer
 
 #Following tests run on 23.10.26
+#All passed successfully on 23.10.26 @20.10pm
 def test_let_sequence():
     tokens = Lexer("let x = 5 + 3\nlet y = x * 2").tokenize()
     types = [t.type for t in tokens]
@@ -36,6 +40,7 @@ def test_illegal_character():
 #Tests on the Parser
 
 #Following tests run on 23.10.26
+#All passed successfully on 23.10.26 @20.10pm
 def test_precedence_tree():
     ast = Parser(Lexer("1 + 2 * 3").tokenize()).parse_program()
     root = ast[0]
@@ -48,8 +53,45 @@ def test_precedence_tree():
 #Tests on positions
 
 #Following tests run on 23.10.26
+#All passed successfully on 23.10.26 @20.10pm
 def test_token_positions():
     tokens = Lexer("let x = 5\nlet y =x ").tokenize()
     assert (tokens[4].line, tokens[4].col) == (2,1)
 
                  
+#Tests on evalutor
+
+#Following tests run on 23.10.26
+#All passed successfully on 23.10.26 @20.10pm
+def test_let_binding():
+    result, env = run("let x = 5\nx+3")
+    assert result == 8 and env["x"] == 5
+
+def test_precedence_value():
+    result, env = run("1 + 2 * 3")
+    assert result == 7
+
+def test_chained_lets():
+    result, env = run("let x = 5\n let y = x * 2\ny-x")
+    assert result == 5
+
+def test_undefined_variable():
+    with pytest.raises(Exception):
+        run("x+1")
+
+def test_division_by_zero():
+    with pytest.raises(Exception):
+        run("4/0")
+
+
+
+#Tests on main (general stuff)
+#Test failed on 23.10.26 @21.30pm
+def test_nested_parens():
+    result, env = run("(1+2) * 3")
+    assert result == 9
+
+#Test passed successfully on 23.10.26 @21.30pm
+def test_shadowing():
+    result, env = run("let x = 4\n let x = x + 1 \nx")
+    assert result == 5
