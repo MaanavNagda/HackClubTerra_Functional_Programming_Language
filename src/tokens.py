@@ -33,3 +33,13 @@ class Token:
 #keyword table so the lexer can differentiate keywords from variables
 KEYWORDS = {"let": TokenType.LET}
 
+#single character tokens
+SINGLE_CHAR_TOKENS = {
+    '+': TokenType.PLUS,
+    '-': TokenType.MINUS,
+    '*': TokenType.STAR,
+    '/': TokenType.SLASH,
+    '=': TokenType.EQUALS,
+    '(': TokenType.LPAREN,
+    ')': TokenType.RPAREN
+}
