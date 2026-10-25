@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>
+            Tau
+        </title>
+        <script src="https://cdn.jsdelivr.net/pyodide/v314.0.7/full/pyodide.js"></script>
+    </head>
+    <body>
+        <h1>
+            Tau Web Playground
+        </h1>
+        <textarea id="code" rows="10" cols="60"> let x = 5 
+            x + 3
+        </textarea>
+        <br>
+        <button id="run" disabled>Run</button>
+        <div id = "loading"> loading Python runtime...</div>
+        <pre id="output"></pre>
+
+        <script type="module">
+            const pyodide = await loadPyodide();
+            const files = ["src/__init__.py", "src/tokens.py", "src/lexer.py", "src/ast_nodes.py", "src/parser.py", "src/evaluator.py"]
+            pyodide.FS.mkdirTree("/home/pyodide/src")
+
+            for (const path of files) {
+                const response = await fetch(path);
+                const text = await response.text();
+                pyodide.FS.writeFile("/home/pyodide/" + path, text);
+            }
+            
+            await pyodide.runPythonAsync(`
+            from src.lexer import Lexer
+            print(len(Lexer("let x = 5").tokenize()))`);
+            console.log(pyodide.runPython("1+1")); //expect 2
+            document.getElementById("run").disabled = false;
+            document.getElementById("loading").hidden=true;
+            document.getElementById("run").addEventListener("click", async () => {
+                console.log("run clicked")
+                try {
+                    pyodide.globals.set("user_source", document.getElementById("code").value);
+                    const result = await pyodide.runPythonAsync(`
+                        def _run(src):
+                            try:
+                                from src.lexer import Lexer
+                                from src.parser import Parser
+                                from src.evaluator import run_program
+                                ast = Parser(Lexer(user_source).tokenize()).parse_program()
+                                return run_program(ast, {})[0]
+                            except Exception as e:
+                                return str(e)
+                        _run(user_source)
+                    `);
+                    document.getElementById("output").textContent  = result;
+                } catch (err) {
+                    console.log("handler error:", err.message);
+                }
+            });
+        </script>
+    </body>
+</html>
