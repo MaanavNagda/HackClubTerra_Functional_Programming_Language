@@ -36,16 +36,22 @@ class Let:
     line:int     #position of the "let" keyword
     col:int
 
+
+#conditional if c then a else b, so only one branch every evaluates
+#also an easier to write sentence, and only takes up one line
+#A branch itself may be an if, and thats how elseif chains work
 @dataclass(frozen=True)
 class If:
-    cond: object
-    then: object
-    else_branch: object
+    cond: object  #AST node - the condition
+    then: object  #AST node - evaluated when cond is truthy
+    else_branch: object #AST node- when its false
     line: int
     col: int
 
+
+#boolean literals - true/false; evaluates to themselves like number does
 @dataclass(frozen=True)
 class Bool:
-    value: bool
+    value: bool  
     line: int
     col: int

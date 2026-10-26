@@ -39,6 +39,9 @@ class Parser:
             return self.parse_if()
         return self.parse_comparison()
 
+
+    #Comparison level, and looser than any arithmetic, as a comparison will naturally act as a divider between two sides
+    #Tighter than if, and has the same left-folding shape as addition/multiplication
     def parse_comparison(self):
         left = self.parse_additive()
         while self.peek().type in [TokenType.EQEQ, TokenType.NE, TokenType.LT, TokenType.GT, TokenType.LTE, TokenType.GTE]:
@@ -84,6 +87,9 @@ class Parser:
             return e
         raise Exception(f"expected expression, got {tok} at line {tok.line}, col {tok.col}")
 
+
+    #handles the conditionals logic, and parses it in the correct order
+    #elseif is just nested if branches
     def parse_if(self):
         if_tok = self.advance()
         cond = self.parse_expression()

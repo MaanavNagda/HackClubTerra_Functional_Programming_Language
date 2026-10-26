@@ -52,7 +52,7 @@ class Token:
     col: int
 
 #keyword table so the lexer can differentiate keywords from variables
-#So far, the input of let becomes LET category, and everything else stays as the IDENT category
+#So far, the input of anything that matches from the below table (let, if, then, elseif, true, false, else) becomes keywords, and everything else stays as the IDENT category
 KEYWORDS = {"let": TokenType.LET,
             "if": TokenType.IF,
             "then": TokenType.THEN,
@@ -75,6 +75,9 @@ SINGLE_CHAR_TOKENS = {
     "<": TokenType.LT
 }
 
+#A dictionary of char pairs that are their own token type (mainly the comparison operators)
+#The lexer checks these BEFORE the single chars, so longest match wins
+#This happens because otherwise "==" would register as two "=" and not one "=="
 TWO_CHAR_TOKENS = {
     "==": TokenType.EQEQ, #= is the binder for LET, and so cannot be used here
     "!=": TokenType.NE,

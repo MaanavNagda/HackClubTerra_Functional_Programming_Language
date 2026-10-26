@@ -11,11 +11,11 @@ def evaluate(node, env):
     if isinstance(node, Bool):
         return node.value #boolean literals also evaluate to themselves
     if isinstance(node, If):
-        cond  = evaluate(node.cond,env)
+        cond  = evaluate(node.cond,env) #evaluates the condition first
         if cond:
-            return evaluate(node.then, env)
+            return evaluate(node.then, env) #truthy, so the the then branch only
         elif node.else_branch is not None:
-            return evaluate(node.else_branch, env)
+            return evaluate(node.else_branch, env) #falsy, so the else branch only (which may be a nested if branch)
         return None
     if isinstance(node, Var):
         if node.name in env:
@@ -36,6 +36,7 @@ def evaluate(node, env):
             return left - right
         if node.op == "*": 
             return left*right
+        #Comparisons, so evaluate to True/False
         if node.op ==  "==":
             return left == right
         if node.op == "!=":
