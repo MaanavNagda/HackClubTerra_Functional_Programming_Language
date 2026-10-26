@@ -43,3 +43,9 @@ class If:
     else_branch: object
     line: int
     col: int
+
+@dataclass(frozen=True)
+class Bool:
+    value: bool
+    line: int
+    col: int

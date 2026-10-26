@@ -1,5 +1,5 @@
 from .tokens import Token, TokenType, KEYWORDS, SINGLE_CHAR_TOKENS
-from .ast_nodes import Let, BinOp, Number, Var, If
+from .ast_nodes import Let, BinOp, Number, Var, If, Bool
 #The input is the tokens list, and the output is the AST nodes
 # Expression precendence is built into the function layering, and this helps it follow BODMAS
 #The deeper functions bind together more, and this is what allows things like * to be completed before +
@@ -72,6 +72,10 @@ class Parser:
         tok = self.advance()
         if tok.type == TokenType.NUMBER:
             return Number(tok.value, tok.line, tok.col)
+        if tok.type == TokenType.TRUE:
+            return Bool(True, tok.line, tok.col)
+        if tok.type == TokenType.FALSE:
+            return Bool(False, tok.line, tok.col)
         if tok.type == TokenType.IDENT:
             return Var(tok.value, tok.line, tok.col)
         if tok.type == TokenType.LPAREN:

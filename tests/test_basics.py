@@ -2,7 +2,7 @@ from src.lexer import Lexer
 from src.parser import Parser
 from src.evaluator import run_program
 from src.tokens import TokenType
-from src.ast_nodes import If, Let
+from src.ast_nodes import If, Let, Bool
 import pytest
 #Helper function
 def run(source):
@@ -65,7 +65,14 @@ def test_booleans():
     types = [t.type for t in tokens]
     assert types == [TokenType.TRUE, TokenType.NE, TokenType.FALSE, TokenType.EOF]
 
-
+##Lexer tests on Booleans
+#Following tests run on 26.10.26
+#All passed successfully on 26.10.26 @02.10am
+def test_bool_literals():
+    tokens = Lexer("true false").tokenize()
+    types = [t.type for t in tokens]
+    assert types == [TokenType.TRUE, TokenType.FALSE, TokenType.EOF]
+    
 
 
 #Tests on the Parser
@@ -115,6 +122,16 @@ def test_if_inside_expression():
     ast = Parser(Lexer("let y = if x > 14 then 13 else 11 \ny").tokenize()).parse_program()
     assert isinstance(ast[0], Let)
     assert isinstance(ast[0].value, If)
+
+##Parser tests on Boolean
+#Following tests run on 26.10.26
+#All passed successfully on 26.10.26 @20.10am
+def test_bool_nodes():
+    ast = Parser(Lexer("true").tokenize()).parse_program()
+    assert isinstance(ast[0],Bool) and ast[0].value is True
+
+
+
 
 
 #Tests on positions
@@ -183,6 +200,29 @@ def test_each_comparison():
     assert result is True
     result, env = run("13>=13")
     assert result is True
+
+
+##Evaluator tests on Booleans
+#Following tests run on 26.10.26
+#All passed succesfully on 26.10.26 @02.10am
+def test_bool_evaluates_to_self():
+    result, env = run("true")
+    assert result is True
+    result, env = run("false")
+    assert result is False
+
+
+def test_if_with_bool_literal():
+    result, env = run("if true then 13 else 14")
+    assert result == 13
+    result, env = run("if false then 13 else 14")
+    assert result == 14
+
+def test_bool_variable_as_condition():
+    result, env = run("let b = 13 == 13\nif b then 11 else 14")
+    assert result == 11
+
+
 
 
 

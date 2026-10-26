@@ -1,4 +1,4 @@
-from .ast_nodes import Number, Var, BinOp, Let, If
+from .ast_nodes import Number, Var, BinOp, Let, If, Bool
 #Walks the AST that the parser produced, and then computes the values
 
 #evaluate() handles the expressions
@@ -8,6 +8,8 @@ from .ast_nodes import Number, Var, BinOp, Let, If
 def evaluate(node, env):
     if isinstance(node, Number):
         return node.value #literals evaluate to themselves
+    if isinstance(node, Bool):
+        return node.value #boolean literals also evaluate to themselves
     if isinstance(node, If):
         cond  = evaluate(node.cond,env)
         if cond:
