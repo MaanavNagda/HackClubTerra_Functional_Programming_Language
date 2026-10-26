@@ -1,4 +1,4 @@
-from .tokens import Token, TokenType, KEYWORDS, SINGLE_CHAR_TOKENS
+from .tokens import Token, TokenType, KEYWORDS, SINGLE_CHAR_TOKENS, TWO_CHAR_TOKENS
 #Turns raw source text into a list of tokens. This list of tokens is categorising the pieces of text into the types saved in /src/tokens.py
 #Parser consumes its output
 
@@ -60,7 +60,12 @@ class Lexer:
 
             #dispatch on the current character
             char = self.peek()
-            if char.isdigit():
+            pair = char + (self.peek_next() or "") #looking ahead at the next character to see if it is a pair operator or a single operator
+            if pair in TWO_CHAR_TOKENS: #making sure that we match pair tokens before single ones, as otherwise an "==" operator will instead be treated as two "=", which is not correct
+                self.emit(TWO_CHAR_TOKENS[pair], pair, start_line, start_col)
+                self.advance()
+                self.advance() #BOTH characters need consuming, and so advance is called twice instead of the usual once.
+            elif char.isdigit():
                 self.read_number(start_line, start_col)
             elif char.isalpha() or char == '_':
                 self.read_identifier(start_line, start_col)

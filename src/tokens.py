@@ -12,6 +12,12 @@ class TokenType(Enum):
 
     #keywords (add as functionality is written)
     LET = auto()
+    IF = auto()
+    ELSE = auto()
+    ELIF = auto()
+    THEN = auto()
+    TRUE = auto()
+    FALSE = auto()
 
     #operators
     PLUS = auto() #+
@@ -20,6 +26,13 @@ class TokenType(Enum):
     SLASH = auto() #/
     EQUALS = auto() #=
 
+    #comparison operators
+    LT = auto()
+    GT = auto()
+    LTE = auto()
+    GTE = auto()
+    EQEQ = auto()
+    NE = auto()
 
     #grouping
     LPAREN = auto() #(
@@ -40,7 +53,14 @@ class Token:
 
 #keyword table so the lexer can differentiate keywords from variables
 #So far, the input of let becomes LET category, and everything else stays as the IDENT category
-KEYWORDS = {"let": TokenType.LET}
+KEYWORDS = {"let": TokenType.LET,
+            "if": TokenType.IF,
+            "then": TokenType.THEN,
+            "elseif": TokenType.ELIF,
+            "true": TokenType.TRUE,
+            "false": TokenType.FALSE,
+            "else": TokenType.ELSE
+            }
 
 #A dictionary of single chars that are their own token type (mainly the different mathematical operators and symbols)
 SINGLE_CHAR_TOKENS = {
@@ -50,5 +70,14 @@ SINGLE_CHAR_TOKENS = {
     '/': TokenType.SLASH,
     '=': TokenType.EQUALS,
     '(': TokenType.LPAREN,
-    ')': TokenType.RPAREN
+    ')': TokenType.RPAREN,
+    ">": TokenType.GT,
+    "<": TokenType.LT
+}
+
+TWO_CHAR_TOKENS = {
+    "==": TokenType.EQEQ, #= is the binder for LET, and so cannot be used here
+    "!=": TokenType.NE,
+    "<=": TokenType.LTE,
+    ">=": TokenType.GTE,
 }
