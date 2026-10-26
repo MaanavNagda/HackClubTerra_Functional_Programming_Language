@@ -73,6 +73,35 @@ def test_bool_literals():
     types = [t.type for t in tokens]
     assert types == [TokenType.TRUE, TokenType.FALSE, TokenType.EOF]
     
+#Lexer tests on comments
+#Following tests run on 26.10.26
+#All passed successfully on 26.10.25 @02.39am
+def test_line_comment():
+    tokens = Lexer("let x = 13;;bind x\nx").tokenize()
+    types = [t.type for t in tokens]
+    assert types == [TokenType.LET, TokenType.IDENT, TokenType.EQUALS, TokenType.NUMBER, TokenType.IDENT, TokenType.EOF]
+
+def test_comment_only_line():
+    tokens = Lexer(";; nothing here \n5").tokenize()
+    types = [t.type for t in tokens]
+    assert types == [TokenType.NUMBER, TokenType.EOF]
+
+def test_comment_at_EOF():
+    tokens = Lexer("5;; trailing").tokenize()
+    types = [t.type for t in tokens]
+    assert types == [TokenType.NUMBER, TokenType.EOF]
+
+def test_single_semi_colon_errors():
+    with pytest.raises(Exception):
+        Lexer("13; oops").tokenize()
+
+def test_only_comment():
+    tokens = Lexer(";;Just a comment lol").tokenize()
+    types = [t.type for t in tokens]
+    assert types == [TokenType.EOF]
+
+
+
 
 
 #Tests on the Parser

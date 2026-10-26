@@ -1,4 +1,6 @@
-let x = 14
-let y = x * 13
-let z = y + x * x
-x + y + z
+;;Tau demo - bindings, arithmetic, conditionsals
+
+let x = 14 ;; first binding, assigning 14 to the variable name x
+let y = x * 13 ;; artihmetic operation (multiplication), and binding the result to the variable name y
+let z = y + x * x ;;arithemtic operation (multiple) that tests BODMAS and precedence, and binding the result to the variable name z
+x + y + z ;;final arithimetic output that results in a final number being outputted to the screen.

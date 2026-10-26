@@ -47,8 +47,14 @@ class Lexer:
         #This is to loop until the input is exhausted
         while self.peek() is not None:
             #getting rid of whitespace first (note that newlines are included as a type of whitespace, and so will be removed as well in this step)
-            while self.peek() is not None and self.peek().isspace():
-                self.advance()
+            while True:
+                if self.peek() is not None and self.peek().isspace():
+                    self.advance()
+                elif self.peek() == ";" and self.peek_next() == ";":
+                    while self.peek() is not None and self.peek() != "\n":
+                        self.advance()
+                else:
+                    break
 
             #Also a check for the EOF tag, as otherwise trailing whitespace may cause issues  
             if self.peek() is None:
