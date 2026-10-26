@@ -151,6 +151,40 @@ def test_division_by_zero():
         run("4/0")
 
 
+##Evaluator tests for conditionals and comparisons
+#Following Tests run on 26.10.26
+#All passsed successfully on 26.10.26 @01.50am
+def test_if_true_branch():
+    result, env = run("if 14 > 13 then 11 else 12")
+    assert result == 11
+
+def test_if_false_branch():
+    result, env = run("if 13 > 14 then 11 else 12")
+    assert result == 12
+
+def test_else_if_chain():
+    result, env = run("if 13>14 then 11 elseif 16>12 then 8 else 21")
+    assert result == 8
+
+def test_if_no_else():
+    result, env = run("if 13>14 then 11")
+    assert result is None
+
+def test_each_comparison():
+    result, env = run("3==3")
+    assert result is True
+    result, env = run("3!=4")
+    assert result is True
+    result, env = run("13<14")
+    assert result is True
+    result, env = run("14>13")
+    assert result is True
+    result, env = run("14 <=14")
+    assert result is True
+    result, env = run("13>=13")
+    assert result is True
+
+
 
 #Tests on main (general stuff)
 #Test failed on 23.10.26 @21.30pm

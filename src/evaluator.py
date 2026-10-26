@@ -1,4 +1,4 @@
-from .ast_nodes import Number, Var, BinOp, Let
+from .ast_nodes import Number, Var, BinOp, Let, If
 #Walks the AST that the parser produced, and then computes the values
 
 #evaluate() handles the expressions
@@ -8,7 +8,13 @@ from .ast_nodes import Number, Var, BinOp, Let
 def evaluate(node, env):
     if isinstance(node, Number):
         return node.value #literals evaluate to themselves
-
+    if isinstance(node, If):
+        cond  = evaluate(node.cond,env)
+        if cond:
+            return evaluate(node.then, env)
+        elif node.else_branch is not None:
+            return evaluate(node.else_branch, env)
+        return None
     if isinstance(node, Var):
         if node.name in env:
             return env[node.name] #Looks up the binding from env
@@ -28,6 +34,18 @@ def evaluate(node, env):
             return left - right
         if node.op == "*": 
             return left*right
+        if node.op ==  "==":
+            return left == right
+        if node.op == "!=":
+            return left != right
+        if node.op == "<":
+            return left < right
+        if node.op == ">":
+            return left > right
+        if node.op == ">=":
+            return left >= right
+        if node.op == "<=":
+            return left <= right
         raise Exception(f"unknown operator {node.op}")
 
 #run_programs() handles the statements and env
