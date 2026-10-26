@@ -14,7 +14,10 @@ python main.oy
 python main.py examples/hello.tau
 ^^ Runs an example program in the Tau language. 
 
-##Timeline so far
+## What Tau is today
+Tau is a functional programming language written entirely in python. It features a hand writen lexer, recursive-descent parser, and tree-walk evaluator. It currently supports let binings, arithemtic with BODMAS precendence, if,elseif, and else conditionals, comparisons and booleans, and ;; comments. It can run in the web playground, as an interactive REPL, and file execution. 
+
+## Timeline so far
 
 Week 1:
 - Let bindings
@@ -22,4 +25,9 @@ Week 1:
 - BODMAS
 - Everything is an expression, and env is immutable
 - Example block
+- Conditionals
+- Comparisons
+- Booleans
+- ;; comments
+- Web playground
 
