@@ -26,11 +26,11 @@ def evaluate(node, env):
             return left + right
         if node.op == "-":
             return left - right
-        if node.op == "*":
+        if node.op == "*": 
             return left*right
         raise Exception(f"unknown operator {node.op}")
 
-#run_programs() handles statements and env
+#run_programs() handles the statements and env
 #It runs the list of statements, and then returns the result
 #"Let" is part of run_program and not evaluate because it updates env, which only a statement can do
 def run_program(statements, env):

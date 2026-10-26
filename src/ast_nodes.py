@@ -1,7 +1,7 @@
 from dataclasses import dataclass
+#dataclass is for immutable records, so the fields are only set once, and then never change
 
-
-#Numbers
+#A number literal. Handles all of the numbers like 42 in the program
 @dataclass(frozen=True)
 class Number:
     value: int
@@ -9,27 +9,29 @@ class Number:
     col:int
 
 
-#Vaariable
+#A variable reference, such as the "x" in "x + 3"
+#Stores the name only, the value is looked up in the env at the time of evaluation
 @dataclass(frozen=True)
 class Var:
     name:str
     line:int
     col:int
 
-#Binary Operations
+#Binary Operations - handles the preference stuff, allowing BODMAS to work, as it will evaluate multiplication before addition for example even if the addition comes before the multiplication
 @dataclass(frozen=True)
 class BinOp:
-    op:str
-    left: object
-    right: object
-    line:int
+    op:str   #the 4 basic mathematical operations ("+", "-", "*", "/")
+    left: object #AST (Abstract Syntax Tree) node
+    right: object #AST node
+    line:int   #position of the operator token
     col:int
 
 
-#let statements
+#let statements - this is the command to bind a value to a variable
+#It is a statement, and not an expression, so it is only legal to do at the top level
 @dataclass(frozen=True)
 class Let:
     name:str
-    value: object
-    line:int
+    value: object  #AST node for the right hand side
+    line:int     #position of the "let" keyword
     col:int

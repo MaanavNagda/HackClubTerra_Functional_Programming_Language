@@ -87,6 +87,7 @@ def test_division_by_zero():
 
 #Tests on main (general stuff)
 #Test failed on 23.10.26 @21.30pm
+#Error fixed, test rerun, and test passed successfully on 23.10.26 @21.35pm
 def test_nested_parens():
     result, env = run("(1+2) * 3")
     assert result == 9
