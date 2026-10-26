@@ -35,3 +35,11 @@ class Let:
     value: object  #AST node for the right hand side
     line:int     #position of the "let" keyword
     col:int
+
+@dataclass(frozen=True)
+class If:
+    cond: object
+    then: object
+    else_branch: object
+    line: int
+    col: int

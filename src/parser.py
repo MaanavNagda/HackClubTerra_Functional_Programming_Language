@@ -1,5 +1,5 @@
 from .tokens import Token, TokenType, KEYWORDS, SINGLE_CHAR_TOKENS
-from .ast_nodes import Let, BinOp, Number, Var
+from .ast_nodes import Let, BinOp, Number, Var, If
 #The input is the tokens list, and the output is the AST nodes
 # Expression precendence is built into the function layering, and this helps it follow BODMAS
 #The deeper functions bind together more, and this is what allows things like * to be completed before +
@@ -35,7 +35,17 @@ class Parser:
 
     #This is where the expressions enter from, and is done so that future ones can slot in without touching callers.
     def parse_expression(self):
-        return self.parse_additive()
+        if self.peek().type in [TokenType.IF, TokenType.ELIF]:
+            return self.parse_if()
+        return self.parse_comparison()
+
+    def parse_comparison(self):
+        left = self.parse_additive()
+        while self.peek().type in [TokenType.EQEQ, TokenType.NE, TokenType.LT, TokenType.GT, TokenType.LTE, TokenType.GTE]:
+            op_tok = self.advance()
+            right = self.parse_additive()
+            left = BinOp(op_tok.value, left, right, op_tok.line, op_tok.col)
+        return left
 
     #This handles addition and subtraction, which is the lowest levels of BODMAS (Addition handles subtraction as well, as subtracting is just adding the negative of that number)
     def parse_additive(self):
@@ -69,6 +79,20 @@ class Parser:
             self.expect(TokenType.RPAREN)
             return e
         raise Exception(f"expected expression, got {tok} at line {tok.line}, col {tok.col}")
+
+    def parse_if(self):
+        if_tok = self.advance()
+        cond = self.parse_expression()
+        self.expect(TokenType.THEN)
+        then_branch = self.parse_expression()
+        if self.peek().type == TokenType.ELSE:
+            self.advance()
+            else_branch = self.parse_expression()
+        elif self.peek().type == TokenType.ELIF:
+            else_branch =self.parse_if()
+        else:
+            else_branch = None
+        return If(cond, then_branch, else_branch, if_tok.line, if_tok.col)
 
 #--------These are helper functions (below)----------------------------------------------------------------------
 

@@ -2,6 +2,7 @@ from src.lexer import Lexer
 from src.parser import Parser
 from src.evaluator import run_program
 from src.tokens import TokenType
+from src.ast_nodes import If, Let
 import pytest
 #Helper function
 def run(source):
@@ -79,6 +80,42 @@ def test_precedence_tree():
     assert root.right.op == "*"
     assert root.right.left.value == 2
     assert root.right.right.value == 3
+
+
+##Parser tests on conditions and  double character operators
+#Following tests run on 26.10.26 
+#All passed successfull on 26.10.26 @01.29am
+def test_if_node_shape():
+    ast = Parser(Lexer("if 14 > 13 then 11 else 12").tokenize()).parse_program()
+    root = ast[0]
+    assert isinstance(root, If)
+    assert root.cond.op == ">"
+    assert root.then.value == 11
+    assert root.else_branch.value == 12
+
+def test_elseif_is_nested_if():
+    ast = Parser(Lexer("if a then 13 elseif b then 14 else 11").tokenize()).parse_program()
+    root = ast[0]
+    assert isinstance(root, If)
+    assert isinstance(root.else_branch, If)
+    assert root.else_branch.then.value == 14
+    assert root.else_branch.else_branch.value == 11
+
+def test_comparison_binds_looser_than_addition():
+    ast = Parser(Lexer("1 + 2 == 3").tokenize()).parse_program()
+    root = ast[0]
+    assert root.op == "=="
+    assert root.left.op == "+"
+
+def test_if_without_else_is_none():
+    ast = Parser(Lexer("if a then 13").tokenize()).parse_program()
+    assert ast[0].else_branch is None
+
+def test_if_inside_expression():
+    ast = Parser(Lexer("let y = if x > 14 then 13 else 11 \ny").tokenize()).parse_program()
+    assert isinstance(ast[0], Let)
+    assert isinstance(ast[0].value, If)
+
 
 #Tests on positions
 
