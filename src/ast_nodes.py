@@ -55,3 +55,21 @@ class Bool:
     value: bool  
     line: int
     col: int
+
+@dataclass(frozen=True)
+class FnDef:
+    name:str
+    param:str
+    body:list
+    line:int
+    col:int
+
+@dataclass(frozen=True)
+class Call:
+    func:object
+    arg:object
+    line:int
+    col:int
+
+
+    

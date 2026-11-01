@@ -27,6 +27,11 @@ class Lexer:
             return None
         return self.input_string[self.pos + 1]
 
+    def peek_at(self, n):
+        if self.pos + n >= len(self.input_string):
+            return None
+        return self.input_string[pos+n]
+
     #This consumes and returns current char, which essentially means that the pos/line/col change. it is the ONLY place that they can be changed from
     def advance(self):
         char = self.input_string[self.pos]

@@ -1,11 +1,27 @@
-from .ast_nodes import Number, Var, BinOp, Let, If, Bool
+from .ast_nodes import Number, Var, BinOp, Let, If, Bool, FnDef, Call
 #Walks the AST that the parser produced, and then computes the values
+
+class closure():
+    def __init__(self, param, body, env):
+        self.param = param
+        self.body = body
+        self.env = env
+
+
 
 #evaluate() handles the expressions
 #evaluates a single AST node -> a value
 # env is a dictionary (name -> value) that holds all the current bindings
 #Bin op evaluates its own subtrees, which is what makes it a recursive tree walk
 def evaluate(node, env):
+    if isinstance(node, Call):
+        func = evaluate(node.func, env)
+        arg = evaluate(node.arg, env)
+        if not isinstance(func, closure):
+            raise Exception(f"calling non-function")
+        callEnv = {**func.env}
+        callEnv[func.param] = arg
+        return run_program(func.body, callEnv)[0]
     if isinstance(node, Number):
         return node.value #literals evaluate to themselves
     if isinstance(node, Bool):
@@ -61,6 +77,13 @@ def run_program(statements, env):
             value = evaluate(statement.value, env) #The RHS still sees the old env
             env = {**env, statement.name: value} #This is the new dict, which never mutates
             result = value
+        elif isinstance(statement, FnDef):
+            newClosure = closure(statement.param, statement.body, env)
+            newEnv = {**env}
+            newClosure.env = newEnv
+            newEnv[statement.name] =  newClosure
+            env = newEnv
+            result = newClosure
         else:
             result = evaluate(statement, env) #This is a plain expression, so its just its value
     return result, env #the env is returned, so that the REPL has "memory", and can keep previous bindings in its "memory"

@@ -2,7 +2,7 @@ from src.lexer import Lexer
 from src.parser import Parser
 from src.evaluator import run_program
 from src.tokens import TokenType
-from src.ast_nodes import If, Let, Bool
+from src.ast_nodes import If, Let, Bool, FnDef, Call, Var, BinOp, Number
 import pytest
 #Helper function
 def run(source):
@@ -100,7 +100,23 @@ def test_only_comment():
     types = [t.type for t in tokens]
     assert types == [TokenType.EOF]
 
+#Lexer tests on functions
+#Following tests run on 1.11.26
+#All passed succesfully on 1.11.26 @ 15.59
+def test_fn_brace_tokens():
+    tokens = Lexer("fn f(x){}").tokenize()
+    types = [t.type for t in tokens]
+    assert types == [TokenType.FN, TokenType.IDENT, TokenType.LPAREN, TokenType.IDENT, TokenType.RPAREN, TokenType.LBRACE, TokenType.RBRACE, TokenType.EOF]
 
+def test_apply_token():
+    tokens = Lexer("add14-> 14").tokenize()
+    types = [t.type for t in tokens]
+    assert types == [TokenType.IDENT, TokenType.APPLY, TokenType.NUMBER, TokenType.EOF]
+
+def test_dash_not_apply():
+    tokens = Lexer("a - 13").tokenize()
+    types = [t.type for t in tokens]
+    assert types == [TokenType.IDENT, TokenType.MINUS, TokenType.NUMBER, TokenType.EOF]
 
 
 
@@ -157,7 +173,43 @@ def test_if_inside_expression():
 #All passed successfully on 26.10.26 @20.10am
 def test_bool_nodes():
     ast = Parser(Lexer("true").tokenize()).parse_program()
-    assert isinstance(ast[0],Bool) and ast[0].value is True
+    assert isinstance(ast[0], Bool) and ast[0].value is True
+
+#Parser tests on functions
+#Following tests run on 1.11.26
+#All passed succesfully on 1.11.26 @ 15.59
+def test_fndef_shape():
+    ast = Parser(Lexer("fn add14(x){x+14}").tokenize()).parse_program()
+    root = ast[0]
+    assert isinstance(root, FnDef)
+    assert root.name == "add14"
+    assert root.param == "x"
+    assert root.body[0].op == "+"
+
+def test_fndef_multistatement():
+    ast = Parser(Lexer("fn f(x){let y = x + 13\ny}").tokenize()).parse_program()
+    root = ast[0]
+    assert len(root.body) == 2
+    assert isinstance(root.body[0], Let)
+    assert isinstance(root.body[1], Var)
+
+def test_call_node():
+    ast = Parser(Lexer("add14 -> 13").tokenize()).parse_program()
+    root = ast[0]
+    assert isinstance(root, Call)
+    assert root.func.name == "add14"
+    assert root.arg.value == 13
+
+def test_call_lef_assoc():
+    ast = Parser(Lexer("f -> 13 -> 14").tokenize()).parse_program()
+    root = ast[0]
+    assert isinstance(root, Call)
+    assert isinstance(root.func, Call)
+
+def test_call_arg_expr():
+    ast = Parser(Lexer("add -> 13 + 14").tokenize()).parse_program()
+    root = ast[0]
+    assert root.arg.op == "+"
 
 
 
@@ -253,6 +305,32 @@ def test_bool_variable_as_condition():
 
 
 
+#Evaluator tests on functions
+#Following tests run on 1.11.26
+#All passed succesfully on 1.11.26 @ 15.59
+def test_simple_call():
+    result, env, = run("fn add13(x){x+13}\nadd13 ->14")
+    assert result == 27
+
+def test_body_last_expr():
+    result, env = run("fn f(x){let y = x * 13\n y + 14}\n f ->11")
+    assert result == 157
+
+def test_closure_capture():
+    result, env = run("let a = 13\n fn f(x){x + a}\nf -> 14")
+    assert result == 27
+
+def test_param_is_local():
+    result, env = run("let y = 13\nfn f(x){let y = x\n y} \nf -> 14\ny")
+    assert result == 13
+
+def test_recursion():
+    result, env = run("fn fact(n){if n == 0 then 1 else n * (fact -> (n-1))}\nfact->11")
+    assert result == 11*10* 9*8*7*6*5*4*3*2*1
+
+def test_call_non_function():
+    with pytest.raises(Exception):
+        run("14 -> 13")
 
 
 #Tests on main (general stuff)

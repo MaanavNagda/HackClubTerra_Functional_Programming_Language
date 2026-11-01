@@ -40,6 +40,10 @@ class TokenType(Enum):
 
     EOF = auto() #This is the end of input marker, and it is the parser's stop signal, telling it that there is no more input left to parse
 
+    FN = auto()
+    LBRACE = auto()
+    RBRACE = auto()
+    APPLY = auto()
 
 #A token is its category, its payload, and where it was in the source.
 #A value is either an integer (for numbers), or a name (for identifiers). Simple operators just carry their character itself.
@@ -59,7 +63,8 @@ KEYWORDS = {"let": TokenType.LET,
             "elseif": TokenType.ELIF,
             "true": TokenType.TRUE,
             "false": TokenType.FALSE,
-            "else": TokenType.ELSE
+            "else": TokenType.ELSE,
+            "fn": TokenType.FN
             }
 
 #A dictionary of single chars that are their own token type (mainly the different mathematical operators and symbols)
@@ -72,7 +77,9 @@ SINGLE_CHAR_TOKENS = {
     '(': TokenType.LPAREN,
     ')': TokenType.RPAREN,
     ">": TokenType.GT,
-    "<": TokenType.LT
+    "<": TokenType.LT,
+    "{": TokenType.LBRACE,
+    "}": TokenType.RBRACE
 }
 
 #A dictionary of char pairs that are their own token type (mainly the comparison operators)
@@ -83,4 +90,5 @@ TWO_CHAR_TOKENS = {
     "!=": TokenType.NE,
     "<=": TokenType.LTE,
     ">=": TokenType.GTE,
+    "->": TokenType.APPLY
 }

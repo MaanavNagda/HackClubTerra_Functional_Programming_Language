@@ -1,5 +1,5 @@
 from .tokens import Token, TokenType, KEYWORDS, SINGLE_CHAR_TOKENS
-from .ast_nodes import Let, BinOp, Number, Var, If, Bool
+from .ast_nodes import Let, BinOp, Number, Var, If, Bool, FnDef, Call
 #The input is the tokens list, and the output is the AST nodes
 # Expression precendence is built into the function layering, and this helps it follow BODMAS
 #The deeper functions bind together more, and this is what allows things like * to be completed before +
@@ -19,6 +19,8 @@ class Parser:
         while self.peek().type !=  TokenType.EOF: #This happens until the input is exhausted
             if self.peek().type == TokenType.LET:
                 statements.append(self.parse_let())
+            elif self.peek().type == TokenType.FN:
+                statements.append(self.parse_fndef())
             else:
                 statements.append(self.parse_expression())
         return statements
@@ -32,12 +34,39 @@ class Parser:
         value = self.parse_expression()  #This parses the full RHS expression
         return Let(name, value, let_tok.line, let_tok.col)
 
+    def parse_fndef(self):
+        fn_tok = self.expect(TokenType.FN)
+        name = self.expect(TokenType.IDENT).value
+        self.expect(TokenType.LPAREN)
+        param = self.expect(TokenType.IDENT).value
+        self.expect(TokenType.RPAREN)
+        self.expect(TokenType.LBRACE)
+        body = []
+        while self.peek().type != TokenType.RBRACE:
+            if self.peek().type == TokenType.LET:
+                body.append(self.parse_let())
+            elif self.peek().type == TokenType.FN:
+                body.append(self.parse_fndef())
+            else:
+                body.append(self.parse_expression())
+        self.expect(TokenType.RBRACE)
+        return FnDef(name, param, body, fn_tok.line, fn_tok.col)
+
 
     #This is where the expressions enter from, and is done so that future ones can slot in without touching callers.
     def parse_expression(self):
         if self.peek().type in [TokenType.IF, TokenType.ELIF]:
             return self.parse_if()
-        return self.parse_comparison()
+        return self.parse_call()
+
+
+    def parse_call(self):
+        left = self.parse_comparison()
+        while self.peek().type == TokenType.APPLY:
+            op_tok = self.advance()
+            right = self.parse_comparison()
+            left = Call(left, right, op_tok.line, op_tok.col)
+        return left
 
 
     #Comparison level, and looser than any arithmetic, as a comparison will naturally act as a divider between two sides
