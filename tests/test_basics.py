@@ -1,4 +1,4 @@
-#66 tests successfuly
+#76 tests successfuly
 from src.lexer import Lexer
 from src.parser import Parser
 from src.evaluator import run_program
@@ -118,6 +118,27 @@ def test_dash_not_apply():
     tokens = Lexer("a - 13").tokenize()
     types = [t.type for t in tokens]
     assert types == [TokenType.IDENT, TokenType.MINUS, TokenType.NUMBER, TokenType.EOF]
+
+
+#Lexer tests on pipeline feature
+#Following tests ran on 1.1.26
+#All passed successfully on 1.11.26 @20.06pm
+def test_pipe_token():
+    tokens = Lexer("a|>b").tokenize()
+    types = [t.type for t in tokens]
+    assert types == [TokenType.IDENT, TokenType.PIPE, TokenType.IDENT, TokenType.EOF]
+
+def test_bare_pipe_errors():
+    with pytest.raises(Exception):
+        Lexer("a|").tokenize()
+
+def test_pipe_vs_apply():
+    tokens = Lexer("a |> f -> 13").tokenize()
+    types = [t.type for t in tokens]
+    assert types == [TokenType.IDENT, TokenType.PIPE, TokenType.IDENT, TokenType.APPLY, TokenType.NUMBER, TokenType.EOF]
+
+
+
 
 
 
@@ -250,6 +271,31 @@ def test_nested_in_body():
     ast = Parser(Lexer("fn outer(x){fn(y){y}}").tokenize()).parse_program()
     root = ast[0]
     assert isinstance(ast[0].body[0], Lambda)
+
+
+#Parser tests on pipeline feature
+#Following tests ran on 1.11.26
+#All passed successfully on 1.11.26 @20.06pm
+def test_pipeline_shape():
+    ast = Parser(Lexer("x|> f").tokenize()).parse_program()
+    root = ast[0]
+    assert isinstance(root, Call)
+    assert isinstance(root.func, Var)
+    assert root.arg.name == "x"
+    assert root.func.name == "f"
+    assert isinstance(root.arg, Var)
+
+def test_pipeline_left_assoc():
+    ast = Parser(Lexer("x|>f|>g").tokenize()).parse_program()
+    root = ast[0]
+    assert isinstance(root.arg, Call)
+    assert root.func.name == "g"
+
+def test_rhs_call():
+    ast = Parser(Lexer("x |> f ->14").tokenize()).parse_program()
+    root = ast[0]
+    assert isinstance(root.func, Call)
+    assert root.arg.name == "x"
 
 
 
@@ -408,6 +454,26 @@ def test_param_shadows_outlier():
 def test_multi_statement_body():
     result, env = run("let f = fn(x){let y = x * 11\n y + 13}\n f -> 14")
     assert result == 167
+
+
+#Evaluator tests on pipeline feature
+#Following tests ran on 1.11.26
+#All passed successfully on 1.11.26 @20.06pm
+def test_pipeline_simple():
+    result, env = run("13 |> fn(x){x+14}")
+    assert result == 27
+
+def test_pipeline_chain():
+    result, env = run("13 |> fn(x){x*14} |> fn(x){x-11}")
+    assert result == 171
+
+def test_named_fun():
+    result, env = run("fn double(x){x*2}\n 13 |> double")
+    assert result == 26
+
+def test_pipe_into_let():
+    result, env = run("let out = 13 |> fn(x){x*11}\n out")
+    assert result == 143
 
 
 #Tests on main (general stuff)

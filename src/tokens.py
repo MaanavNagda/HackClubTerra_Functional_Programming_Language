@@ -45,6 +45,8 @@ class TokenType(Enum):
     RBRACE = auto()
     APPLY = auto()
 
+    PIPE = auto()
+
 #A token is its category, its payload, and where it was in the source.
 #A value is either an integer (for numbers), or a name (for identifiers). Simple operators just carry their character itself.
 #Line/col are there so that errors can point to the exact source position of the error, making it a lot more identifiable (and so a lot easier to fix) than a generic there is an error message.
@@ -90,5 +92,6 @@ TWO_CHAR_TOKENS = {
     "!=": TokenType.NE,
     "<=": TokenType.LTE,
     ">=": TokenType.GTE,
-    "->": TokenType.APPLY
+    "->": TokenType.APPLY,
+    "|>": TokenType.PIPE
 }

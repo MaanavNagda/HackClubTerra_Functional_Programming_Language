@@ -64,8 +64,15 @@ class Parser:
     def parse_expression(self):
         if self.peek().type in [TokenType.IF, TokenType.ELIF]:
             return self.parse_if()
-        return self.parse_call()
+        return self.parse_pipeline()
 
+    def parse_pipeline(self):
+        left = self.parse_call()
+        while self.peek().type == TokenType.PIPE:
+            opTok = self.advance()
+            right = self.parse_call()
+            left = Call(right, left, opTok.line, opTok.col)
+        return left
 
     def parse_call(self):
         left = self.parse_comparison()
