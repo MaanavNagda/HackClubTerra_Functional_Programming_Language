@@ -40,12 +40,11 @@ class TokenType(Enum):
 
     EOF = auto() #This is the end of input marker, and it is the parser's stop signal, telling it that there is no more input left to parse
 
-    FN = auto()
-    LBRACE = auto()
-    RBRACE = auto()
-    APPLY = auto()
-
-    PIPE = auto()
+    FN = auto() #the fn keyword which starts both named defs of functions, and lambdas
+    LBRACE = auto() #the { that opens a function body
+    RBRACE = auto() #the } that closes a function body
+    APPLY = auto() #The -> operator, which applies a function to an argument
+    PIPE = auto() #the |> operator, which pipes a value into a function, and desugars to a Call (desugars is the method of translating convenient syntax into a more basic form that can be handled by existing implementation)
 
 #A token is its category, its payload, and where it was in the source.
 #A value is either an integer (for numbers), or a name (for identifiers). Simple operators just carry their character itself.
@@ -92,6 +91,6 @@ TWO_CHAR_TOKENS = {
     "!=": TokenType.NE,
     "<=": TokenType.LTE,
     ">=": TokenType.GTE,
-    "->": TokenType.APPLY,
-    "|>": TokenType.PIPE
+    "->": TokenType.APPLY, #function application operator
+    "|>": TokenType.PIPE #Pipeline operator
 }

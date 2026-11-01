@@ -19,6 +19,7 @@ class Parser:
         while self.peek().type !=  TokenType.EOF: #This happens until the input is exhausted
             if self.peek().type == TokenType.LET:
                 statements.append(self.parse_let())
+            #fn has two meanings - either fn followed by a name, then LPAREN, which is a named definition, or fn followed straight by the LPAREN, which is a Lambda expression, so we look the token ahead to decide which it is
             elif self.peek().type == TokenType.FN:
                 if self.peek_at(1).type == TokenType.IDENT:
                     statements.append(self.parse_fndef())
@@ -37,6 +38,8 @@ class Parser:
         value = self.parse_expression()  #This parses the full RHS expression
         return Let(name, value, let_tok.line, let_tok.col)
 
+    #Parses a named function definition
+    #The body is shared with lambdas using parse_body(), as both are just statement lists, so the its better to outsource it to a function rather than repeating it
     def parse_fndef(self):
         fn_tok = self.expect(TokenType.FN)
         name = self.expect(TokenType.IDENT).value
@@ -48,6 +51,8 @@ class Parser:
         self.expect(TokenType.RBRACE)
         return FnDef(name, param, body, fn_tok.line, fn_tok.col)
 
+    #This is for parsing the list of statements inside the LBRACE and RBRACE, and is shared by both named functions and lambdas
+    #Also needs the lookahead, as there can be nested functions, so needs to know how to deal with that.
     def parse_body(self):
         body = []
         while self.peek().type != TokenType.RBRACE:
@@ -59,13 +64,14 @@ class Parser:
                 body.append(self.parse_expression())
         return body
 
-
     #This is where the expressions enter from, and is done so that future ones can slot in without touching callers.
     def parse_expression(self):
         if self.peek().type in [TokenType.IF, TokenType.ELIF]:
             return self.parse_if()
         return self.parse_pipeline()
 
+    #This is for the pipeline operator, and is the loosest level (sitting a level above ->)
+    #x |> f desugars to Call(f,x), hence why the operands swap 
     def parse_pipeline(self):
         left = self.parse_call()
         while self.peek().type == TokenType.PIPE:
@@ -74,6 +80,8 @@ class Parser:
             left = Call(right, left, opTok.line, opTok.col)
         return left
 
+    #This is the application operator applies
+    #it is left associative, which is what makes curried functions work naturally
     def parse_call(self):
         left = self.parse_comparison()
         while self.peek().type == TokenType.APPLY:
@@ -128,6 +136,8 @@ class Parser:
             e = self.parse_expression()
             self.expect(TokenType.RPAREN)
             return e
+        #fn in the expression position is an anonymous lambda, and so is a primary like numbers/vars
+        #This is what lets lambdas aappear inside the RHS of a let statement, call args, and pipelines.
         if tok.type == TokenType.FN:
             self.expect(TokenType.LPAREN)
             param = self.expect(TokenType.IDENT).value
@@ -161,9 +171,9 @@ class Parser:
     def peek(self):
         return self.tokens[self.pos]
 
+    #Looks n tokens ahead, without consuming them, which is how regular defined functions are distinguished from lambda expressions
     def peek_at(self, n):
         return self.tokens[self.pos + n]
-    
     
     #consumes and returns the current token, allowing the rest of the program to be read
     def advance(self):

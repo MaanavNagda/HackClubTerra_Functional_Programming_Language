@@ -1,6 +1,9 @@
 from .ast_nodes import Number, Var, BinOp, Let, If, Bool, FnDef, Call, Lambda
 #Walks the AST that the parser produced, and then computes the values
 
+
+
+#This is a runtime function value, and it captures the parameter, body, and environment when it is created
 class closure():
     def __init__(self, param, body, env):
         self.param = param
@@ -14,8 +17,10 @@ class closure():
 # env is a dictionary (name -> value) that holds all the current bindings
 #Bin op evaluates its own subtrees, which is what makes it a recursive tree walk
 def evaluate(node, env):
+    #Evaluating a lambda creates a closure that captures the current environment
     if isinstance(node, Lambda):
         return closure(node.param, node.body, env)
+    #Evaluates the function and argument, then runs the function body with that argument bound to its parameter 
     if isinstance(node, Call):
         func = evaluate(node.func, env)
         arg = evaluate(node.arg, env)
@@ -77,10 +82,12 @@ def run_program(statements, env):
     for statement in statements:
         if isinstance(statement, Let):
             value = evaluate(statement.value, env) #The RHS still sees the old env
+            #if the bound value is a function, then its name goes inside its OWN caputred env, so a let-bound lambda can still call itself recursively.
             if isinstance(value, closure):
                 value.env = {**env, statement.name : value}
             env = {**env, statement.name: value} #This is the new dict, which never mutates
             result = value
+        #Binds the name inside the closure's OWN captured env (but not a mutation of the old env), which is what lets functions call themselves recursively.
         elif isinstance(statement, FnDef):
             newClosure = closure(statement.param, statement.body, env)
             newEnv = {**env}

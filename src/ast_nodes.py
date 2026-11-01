@@ -56,21 +56,34 @@ class Bool:
     line: int
     col: int
 
+
+#A named function definition. It binds the name to the function in the env.
+#It is a statement (and not an expression) as it updates the env (similar to let)
+#Body is a list of statements, and the last one in that list is what is returned when the function is called
 @dataclass(frozen=True)
 class FnDef:
-    name:str
-    param:str
-    body:list
+    name:str    #the name of the function
+    param:str   #the name of the parameter (additional arguments come from currying & nested functions) (currying is writing a multi-argument function as a chain of single-argument function instead; each takes one argument, and returns the next function)
+    body:list   #list of all the statements in the function, and the result of the last one is what is returned
     line:int
     col:int
 
+
+#Used to apply a function to an argument
+#Pipelining also desugars to this, so there is only one thing for the evaluator to deal with, rather than multiple ways of saying the same thing
 @dataclass(frozen=True)
-class Call:
-    func:object
-    arg:object
+class Call:       
+    func:object   #AST node - anything that should evaluate to a closure
+    arg:object    #AST node - the input that the function is applied to
     line:int
     col:int
 
+
+#This is an anonymous function
+#It is used when a VALUE is expected, but writing it as a function is better
+#It evaluates to a closure
+#It can still recurse through a let
+#It is an expression (not a statement), and so cannot alter the env (although it is able to capture it).
 @dataclass(frozen=True)
 class Lambda:
     param:str

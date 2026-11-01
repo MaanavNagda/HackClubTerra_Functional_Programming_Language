@@ -21,7 +21,7 @@ class Lexer:
             return None
         return self.input_string[self.pos]
 
-    #Looks at the character after the current one, also without consuming. This is for future two character operators (like ==)
+    #Looks at the character after the current one, also without consuming. This is for two character operators (like ==)
     def peek_next(self):
         if self.pos + 1 >= len(self.input_string):
             return None
