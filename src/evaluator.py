@@ -1,4 +1,4 @@
-from .ast_nodes import Number, Var, BinOp, Let, If, Bool, FnDef, Call
+from .ast_nodes import Number, Var, BinOp, Let, If, Bool, FnDef, Call, Lambda
 #Walks the AST that the parser produced, and then computes the values
 
 class closure():
@@ -14,6 +14,8 @@ class closure():
 # env is a dictionary (name -> value) that holds all the current bindings
 #Bin op evaluates its own subtrees, which is what makes it a recursive tree walk
 def evaluate(node, env):
+    if isinstance(node, Lambda):
+        return closure(node.param, node.body, env)
     if isinstance(node, Call):
         func = evaluate(node.func, env)
         arg = evaluate(node.arg, env)
@@ -75,6 +77,8 @@ def run_program(statements, env):
     for statement in statements:
         if isinstance(statement, Let):
             value = evaluate(statement.value, env) #The RHS still sees the old env
+            if isinstance(value, closure):
+                value.env = {**env, statement.name : value}
             env = {**env, statement.name: value} #This is the new dict, which never mutates
             result = value
         elif isinstance(statement, FnDef):

@@ -1,5 +1,5 @@
 from .tokens import Token, TokenType, KEYWORDS, SINGLE_CHAR_TOKENS
-from .ast_nodes import Let, BinOp, Number, Var, If, Bool, FnDef, Call
+from .ast_nodes import Let, BinOp, Number, Var, If, Bool, FnDef, Call, Lambda
 #The input is the tokens list, and the output is the AST nodes
 # Expression precendence is built into the function layering, and this helps it follow BODMAS
 #The deeper functions bind together more, and this is what allows things like * to be completed before +
@@ -20,7 +20,10 @@ class Parser:
             if self.peek().type == TokenType.LET:
                 statements.append(self.parse_let())
             elif self.peek().type == TokenType.FN:
-                statements.append(self.parse_fndef())
+                if self.peek_at(1).type == TokenType.IDENT:
+                    statements.append(self.parse_fndef())
+                else:
+                    statements.append(self.parse_expression())
             else:
                 statements.append(self.parse_expression())
         return statements
@@ -41,16 +44,20 @@ class Parser:
         param = self.expect(TokenType.IDENT).value
         self.expect(TokenType.RPAREN)
         self.expect(TokenType.LBRACE)
+        body = self.parse_body()
+        self.expect(TokenType.RBRACE)
+        return FnDef(name, param, body, fn_tok.line, fn_tok.col)
+
+    def parse_body(self):
         body = []
         while self.peek().type != TokenType.RBRACE:
             if self.peek().type == TokenType.LET:
                 body.append(self.parse_let())
-            elif self.peek().type == TokenType.FN:
+            elif self.peek().type == TokenType.FN and self.peek_at(1).type == TokenType.IDENT:
                 body.append(self.parse_fndef())
             else:
                 body.append(self.parse_expression())
-        self.expect(TokenType.RBRACE)
-        return FnDef(name, param, body, fn_tok.line, fn_tok.col)
+        return body
 
 
     #This is where the expressions enter from, and is done so that future ones can slot in without touching callers.
@@ -114,6 +121,14 @@ class Parser:
             e = self.parse_expression()
             self.expect(TokenType.RPAREN)
             return e
+        if tok.type == TokenType.FN:
+            self.expect(TokenType.LPAREN)
+            param = self.expect(TokenType.IDENT).value
+            self.expect(TokenType.RPAREN)
+            self.expect(TokenType.LBRACE)
+            body = self.parse_body()
+            self.expect(TokenType.RBRACE)
+            return Lambda(param, body, tok.line, tok.col)
         raise Exception(f"expected expression, got {tok} at line {tok.line}, col {tok.col}")
 
 
@@ -138,6 +153,10 @@ class Parser:
     #peek looks at the current token, but doesnt consume it. EOF is always the last token
     def peek(self):
         return self.tokens[self.pos]
+
+    def peek_at(self, n):
+        return self.tokens[self.pos + n]
+    
     
     #consumes and returns the current token, allowing the rest of the program to be read
     def advance(self):

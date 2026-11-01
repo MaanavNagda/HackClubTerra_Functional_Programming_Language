@@ -71,5 +71,10 @@ class Call:
     line:int
     col:int
 
-
+@dataclass(frozen=True)
+class Lambda:
+    param:str
+    body:list
+    line:int
+    col:int
     

@@ -1,8 +1,9 @@
+#66 tests successfuly
 from src.lexer import Lexer
 from src.parser import Parser
 from src.evaluator import run_program
 from src.tokens import TokenType
-from src.ast_nodes import If, Let, Bool, FnDef, Call, Var, BinOp, Number
+from src.ast_nodes import If, Let, Bool, FnDef, Call, Var, BinOp, Number, Lambda
 import pytest
 #Helper function
 def run(source):
@@ -102,7 +103,7 @@ def test_only_comment():
 
 #Lexer tests on functions
 #Following tests run on 1.11.26
-#All passed succesfully on 1.11.26 @ 15.59
+#All passed succesfully on 1.11.26 @ 15.59pm
 def test_fn_brace_tokens():
     tokens = Lexer("fn f(x){}").tokenize()
     types = [t.type for t in tokens]
@@ -177,7 +178,7 @@ def test_bool_nodes():
 
 #Parser tests on functions
 #Following tests run on 1.11.26
-#All passed succesfully on 1.11.26 @ 15.59
+#All passed succesfully on 1.11.26 @ 15.59pm
 def test_fndef_shape():
     ast = Parser(Lexer("fn add14(x){x+14}").tokenize()).parse_program()
     root = ast[0]
@@ -210,6 +211,47 @@ def test_call_arg_expr():
     ast = Parser(Lexer("add -> 13 + 14").tokenize()).parse_program()
     root = ast[0]
     assert root.arg.op == "+"
+
+#Parser tests on lambda function feature
+#Following tests ran on 1.11.26
+#All passed sauccessfully on 1.11.26 @17.27pm
+def test_statement_level_lambda():
+    ast = Parser(Lexer("fn(x){x+1}").tokenize()).parse_program()
+    root = ast[0]
+    assert root.param == "x"
+    assert isinstance(root.body[0], BinOp)
+    assert root.body[0].op == "+"
+
+def test_named_def():
+    ast = Parser(Lexer("fn f(x){x}").tokenize()).parse_program()
+    root = ast[0]
+    assert isinstance(root, FnDef)
+    assert not isinstance(root, Lambda)
+
+def test_lambda_RHS():
+    ast = Parser(Lexer("let f = fn(x){x}").tokenize()).parse_program()
+    root = ast[0]
+    assert isinstance(root, Let)
+    assert isinstance(ast[0].value, Lambda)
+
+def test_lambda_call_arg():
+    ast = Parser(Lexer("apply -> fn(x){x}").tokenize()).parse_program()
+    root = ast[0]
+    assert isinstance(root, Call)
+    assert isinstance(root.arg, Lambda)
+
+def test_immediate_call():
+    ast = Parser(Lexer("fn(x){x} -> 14").tokenize()).parse_program()
+    root = ast[0]
+    assert isinstance(root, Call)
+    assert isinstance(root.func, Lambda)
+
+def test_nested_in_body():
+    ast = Parser(Lexer("fn outer(x){fn(y){y}}").tokenize()).parse_program()
+    root = ast[0]
+    assert isinstance(ast[0].body[0], Lambda)
+
+
 
 
 
@@ -331,6 +373,41 @@ def test_recursion():
 def test_call_non_function():
     with pytest.raises(Exception):
         run("14 -> 13")
+
+#Evaluator tests on Lambda function feature
+#Following tests ran on 1.11.26
+#All successfully passed on 1.11.26 @ 17.27pm
+def test_basic_input():
+    result, env = run("let f = fn(x){x+13}\nf -> 14")
+    assert result == 27
+
+def test_capture():
+    result, env = run("let a = 14\n let f = fn(x){x*a}\n f->13")
+    assert result == 182
+
+def test_immediate_call():
+    result, env = run("fn(x){x*11} -> 13")
+    assert result == 143
+
+def test_first_class_arg():
+    result, env = run("fn apply(f){f->11}\n apply -> fn(x){x*14}")
+    assert result == 154
+
+def test_currying():
+    result, env = run("fn adder(x){fn(y){x+y}}\n (adder -> 14) ->11")
+    assert result == 25
+
+def test_the_letBound_recursion():
+    result, env = run("let fact = fn(n){if n == 0 then 1 else n * (fact -> (n-1))}\n fact -> 13")
+    assert result == 13 * 12 * 11 * 10 * 9 * 8 * 7 * 6 * 5 * 4 * 3 * 2 * 1
+
+def test_param_shadows_outlier():
+    result, env = run("let x = 13\n let f = fn(x){x+14}\nf->11\nx")
+    assert result == 13
+
+def test_multi_statement_body():
+    result, env = run("let f = fn(x){let y = x * 11\n y + 13}\n f -> 14")
+    assert result == 167
 
 
 #Tests on main (general stuff)
