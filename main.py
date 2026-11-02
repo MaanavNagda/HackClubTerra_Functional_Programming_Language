@@ -11,7 +11,7 @@ from src.repl import repl
 
 
 #arg parsing - "--engine machine" selects the CEK machine as the engine being used.
-#"-- engine native" selects the evaluator as the engine being used. As this is the simpler version (especially after the full time travelling features have been added), so the system defaults to native. 
+#"--engine naive" selects the evaluator as the engine being used. As this is the simpler version (especially after the full time travelling features have been added), so the system defaults to naive. 
 #Any other arguments are treated as the file to be run
 engine = "naive"
 filename = None
@@ -30,7 +30,7 @@ if filename:
         with open(filename, 'r') as f:
             source = f.read()
         ast = Parser(Lexer(source).tokenize()).parse_program()
-        #the machine runs it through the CEK step machine, everything, else uses the original tree walk evaluator
+        #the machine runs it through the CEK step machine, everything else uses the original tree walk evaluator
         if engine == "machine":
             result, env = run_program_machine(ast,{})
         else:
