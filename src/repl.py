@@ -1,11 +1,13 @@
 from .lexer import Lexer
 from .parser import Parser
 from .evaluator import run_program
+from .machine import run_program_machine
 #This is an interactive shell: REPL
 #R --> E --> P --> L = Read --> Evaluate --> Print --> Loop
 #This doesn't have any logic about the tau language itself, but instead it connects the lexer, parser, and evaluator together in a loop, so that each input goes through all of the stages, and not just one of them
 
-def repl():
+#Now passing in engine, to see whether the evaluater or CEK machine is used
+def repl(engine):
     #env must persist across the lines of the REPL, so things like "let x = 14" survives for the next line input of x + 13
     env = {}
     print("Welcome to the Tau REPL! - type exit to quit :)")
@@ -31,7 +33,10 @@ def repl():
         try:
             tokens = Lexer(line).tokenize() #This converts the raw input string into tokens by running the lexer
             ast = Parser(tokens).parse_program() #This converts the tokens from the lexer into an AST by running the parser
-            result, env = run_program(ast, env)  #This evaluates the tree by running the evaluator
+            if engine == "machine": #checking to see whether the evaluator or the CEK machien is being used
+                result, env = run_program_machine(ast, env) #if its CEK machine, then the CEK function is run
+            else:
+                result, env = run_program(ast, env)  # If its not the CEK machine, then it must be the evaluator, and so the evaluator evaluates the tree
             if result is not None: #If there is a result, it is outputted
                 print(result)
         except Exception as e:

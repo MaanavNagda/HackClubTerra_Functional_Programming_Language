@@ -28,7 +28,7 @@
             const pyodide = await loadPyodide();
             
             //copies the files of the programming language into the Pyodide virtual file system, so the inter-file relations and imports work as expected
-            const files = ["src/__init__.py", "src/tokens.py", "src/lexer.py", "src/ast_nodes.py", "src/parser.py", "src/evaluator.py"]
+            const files = ["src/__init__.py", "src/tokens.py", "src/lexer.py", "src/ast_nodes.py", "src/parser.py", "src/evaluator.py", "src/machine.py"]
             pyodide.FS.mkdirTree("/home/pyodide/src")
             
             //fetch text
@@ -58,9 +58,9 @@
                             try:
                                 from src.lexer import Lexer
                                 from src.parser import Parser
-                                from src.evaluator import run_program
+                                from src.machine import run_program_machine
                                 ast = Parser(Lexer(user_source).tokenize()).parse_program()
-                                return run_program(ast, {})[0]
+                                return run_program_machine(ast, {})[0]
                             except Exception as e:
                                 return str(e)
                         _run(user_source)
