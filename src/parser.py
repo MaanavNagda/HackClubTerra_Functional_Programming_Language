@@ -146,6 +146,11 @@ class Parser:
             body = self.parse_body()
             self.expect(TokenType.RBRACE)
             return Lambda(param, body, tok.line, tok.col)
+        #unary minus (like -14 or x * -1) now desugars to 0 - operand, so the evaluators don't see a brand new node type, and instead just see a regular subtraction.
+        #It only activates when an operand is expected, so "a - b" sill parses as subtraction
+        if tok.type == TokenType.MINUS:
+            operand = self.parse_primary()
+            return BinOp("-", Number(0, tok.line, tok.col), operand,tok.line, tok.col)
         raise Exception(f"expected expression, got {tok} at line {tok.line}, col {tok.col}")
 
 

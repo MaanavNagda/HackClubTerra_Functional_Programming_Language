@@ -297,8 +297,43 @@ def test_rhs_call():
     assert isinstance(root.func, Call)
     assert root.arg.name == "x"
 
+#Parser tests on unary minus
 
+def test_unary_minus_node():
+    ast = Parser(Lexer("-14").tokenize()).parse_program()
+    root = ast[0]
+    assert isinstance(root, BinOp)
+    assert root.op == "-"
+    assert isinstance(root.left, Number)
+    assert root.left.value == 0
+    assert isinstance(root.right, Number)
+    assert root.right.value == 14
 
+def test_minus_on_var():
+    ast = Parser(Lexer("-x").tokenize()).parse_program()
+    root = ast[0]
+    assert isinstance(root.right, Var)
+    assert root.right.name == "x"
+
+def minus_inside_multiplication():
+    ast = Parser(Lexer("14 * -1").tokenize()).parse_program()
+    root = ast[0]
+    assert root.op == "+"
+    assert isinstance(root.right, BinOp)
+    assert root.right.op == "-"
+
+def binary_minus():
+    ast = Parser(Lexer("13 -  -14").tokenize()).parse_program()
+    root = ast[0]
+    assert root.op == "-"
+    assert root.left.value == 13
+    assert isinstance(root.right, BinOp)
+
+def double_negation():
+    ast = Parser(Lexer("--14").tokenize()).parse_program()
+    root = ast[0]
+    assert isinstance(root, BinOp)
+    assert isinstance(root.right, BinOp)
 
 
 
