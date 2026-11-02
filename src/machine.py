@@ -1,52 +1,65 @@
 from .ast_nodes import Number, Var, BinOp, Let, If, Bool, FnDef, Call, Lambda
 from .evaluator import closure
 from dataclasses import dataclass
+#CEK machine is the step evaluator. State = (control, env, kont).
+#Every part of it is in plain data, so a state can be printed,  saved, and later rewound or even interleaved with other states. It is this feature that makes the time travel aspects possible.
 
+#a control is finished when it holds a real value. 
+#This can be a number, a boolean, None, or a closure. Bool is checked before int, as in python every bool is also an int
 def is_value(x):
     return isinstance(x, bool) or isinstance(x, int) or x is None or isinstance(x, closure)
 
+#waiting for the right operand, then the operator can be applied
 @dataclass(frozen=True)
 class BinOpR:
     op: str
     rightExpr: object
     savedEnv: object
 
+#both operands are done, and the operator can be applied
 @dataclass(frozen=True)
 class BinOpDo:
     op:str
     leftValue: object
 
+#the condition is done, and you have to pick the then or the else branch
 @dataclass(frozen=True)
 class IfKont:
     thenExpr: object
     elseExpr: object
     savedEnv: object
 
+#the function is done, and you must now evaluate the argument
 @dataclass(frozen=True)
 class CallArg:
     argExpr: object
     savedEnv: object
 
+#the argument is now done, and you must now run the closure's body
 @dataclass(frozen=True)
 class ApplyKont:
     funcValue:object
 
+#The RHS is done, it can be bound, and the body continues
 @dataclass(frozen=True)
 class LetKont:
     name:str
     restStmts:list
     savedEnv:object
 
+#a statement list used as the control. Programs and functions both run as one, so the machine only ever needs to evaluate expressions
 @dataclass(frozen=True)
 class Body:
     statements:list
 
+#the mid-body expressions are done, so the values can be dropped, and the machine can keep going
 @dataclass(frozen=True)
 class Discard:
     restStmts: list
     savedEnv:object
 
-
+#operator calculations
+#shared with the evaluator so both engines agree on operator usage
 def apply_op(op, left, right):
     if op == "/":
         if right == 0:
@@ -72,7 +85,7 @@ def apply_op(op, left, right):
         return left >= right
     raise Exception(f"unknown operator")
 
-
+#one small reduction. two kinds of step: an expression descends into a subexpression and pushes a frame, or a finished value pops the top frame which decides what happens next
 def step(control, env, kont):
     if isinstance(control, Number):
         return (control.value, env, kont)
@@ -91,6 +104,7 @@ def step(control, env, kont):
         return (control.cond, env, [IfKont(control.then, control.else_branch, env)] + kont)
     if isinstance(control, Call):
         return (control.func, env, [CallArg(control.arg, env)] + kont)
+    #running a body = running its statements left to right; let binds using LetKont, fndef self binds for recursion, and only the last statement's value matters
     if isinstance(control, Body):
         if not control.statements:
             return (None, env, kont)
@@ -143,6 +157,9 @@ def step(control, env, kont):
             return (Body(frame.restStmts), frame.savedEnv, kont)
 
 
+#the driver
+#starts with the whole program as a Body and steps until halt
+#it returns the same (result, env) as run_program, as the CEK machine is a replacement for it
 def run_program_machine(statements,env):
     state = (Body(statements), env, [])
     while state[0] != "halt":
