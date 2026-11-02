@@ -5,3 +5,24 @@ let y = x * 13 ;; artihmetic operation (multiplication), and binding the result 
 let z = y + x * x ;;arithemtic operation (multiple) that tests BODMAS and precedence, and binding the result to the variable name z
 let verdict = if  z > 169 then 1 else 0 ;; adding conditional stateents 
 x + y + z ;;final output which results in a number being outputted, so just some basic arithmetic
+
+
+;; Tau demo 2 - functions, lambdas, pipelines, and recursion
+
+fn add14(x){x+14}  ;;a named function: binds add14 in the env
+add14 -> 13        ;;applying it with -> operator. Results in an output of 27 (as 13 + 14  = 27)
+
+let a = 11
+fn plus_a(x){x+a}  ;;a closure captures the env where it was defined
+plus_a -> 14       ;;it can still see that a = 11, so it can still do the sum, and output 25 (as 14 + 11 = 25)
+
+let undecupling = fn(x){x * 11}   ;;this is a lambda, as it is a function with no name
+undecupling -> 13                 ;;outputs 143 as 11 * 13 = 143
+
+13|> undecupling |> add14     ;;this is a pipeline, where multiple functions are chained together. 13 is inputted into undecupling, which outputs 143, and this output is then piped into the add14 function, and it outputs 157, as the final output
+
+fn adder(x){fn(y){x+y}}       ;;currying. The adder returns another function
+(adder -> 14) -> 11           ;;the two functions in a row give 25
+
+fn fact(n){if n == 0 then 1 else n * (fact -> (n-1))}
+fact -> 11                    ;;recursion, and used to calculate the factorial. The fn can call itself by name, and so will end up outputting 11 * 10 * 9 * 8 * 7 * 6 * 5 * 4 * 3 * 2 * 1 = 39916800

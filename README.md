@@ -1,21 +1,21 @@
 # HackClubTerra_Functional_Programming_Language
-This is a repository for my submission to the Hack Club Terra programming commpetition
+This is a repository for my submission to the Hack Club Terra programming competition
 
-My submission is creating my own functional programming language, with time-travel features (by treating time as a sinusodial wave, rather than linear), allowing for
+My submission is creating my own functional programming language, with time-travel features (by treating time as a sinusodial wave, rather than linear), allowing for programs to revert time, and quantum features, allowing for parallel features
 
 ## Try it
 Live playground link
 https://maanavnagda.github.io/HackClubTerra_Functional_Programming_Language/
 
 ## Run locally
-python main.oy
+python main.py
 ^^ runs the repl
 
 python main.py examples/hello.tau
 ^^ Runs an example program in the Tau language. 
 
 ## What Tau is today
-Tau is a functional programming language written entirely in python. It features a hand writen lexer, recursive-descent parser, and tree-walk evaluator. It currently supports let binings, arithemtic with BODMAS precendence, if,elseif, and else conditionals, comparisons and booleans, and ;; comments. It can run in the web playground, as an interactive REPL, and file execution. 
+Tau is a functional programming language written entirely in python. It features a lexer, a recursive-descent parser, and two evaluators. It has the original naive tree walk evaluator, and a CEK style step machine where the whole evaluation state (control, env, kont) is plain data - this is what makes the upcoming time-travel feature possible, and both engines are proven equivalent through the oracle test suite. It currently supports let bindings, arithmetic with BODMAS precedence, if/elseif/else conditionals, comparisons and booleans, ;; comments, named functions with closures and recursion, anonymous lambdas, -> application and |> pipelines. It can run in the web playground (which runs on the CEK machine), as an interactive REPL, and file execution, with --engine naive or --engine machine choosing the evaluator
 
 ## Timeline so far
 
@@ -31,3 +31,11 @@ Week 1:
 - ;; comments
 - Web playground
 
+Week 2:
+- Named functions (fn name(x){...}), -> application, closures, recursion
+- Anonymous lambdas (fn(x){..}) which are useable anywhere a value is
+- Currying - multi-argument functions as chains of single-argument ones
+- |> pipelines, which desugars into a function call
+- CEK step machine, where control/env/kont state is plain, printable data (CEK machine necessary for time travel capabilities)
+- oracle tests asserting both engines produce the same output
+- --engine flag to pick which evaluator is chosen when running locally; the playground runs fully on the CEK machine
