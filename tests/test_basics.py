@@ -1,4 +1,4 @@
-#76 tests successfuly
+#76/76 tests successfuly
 from src.lexer import Lexer
 from src.parser import Parser
 from src.evaluator import run_program
