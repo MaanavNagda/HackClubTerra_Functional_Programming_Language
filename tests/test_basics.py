@@ -1,4 +1,4 @@
-#76/76 tests successfuly
+#85/85 tests successfuly
 from src.lexer import Lexer
 from src.parser import Parser
 from src.evaluator import run_program
@@ -298,7 +298,8 @@ def test_rhs_call():
     assert root.arg.name == "x"
 
 #Parser tests on unary minus
-
+#Following tests ran on 7.11.26
+#All passed successfully on 7.11.26 @18.41
 def test_unary_minus_node():
     ast = Parser(Lexer("-14").tokenize()).parse_program()
     root = ast[0]
