@@ -1,3 +1,5 @@
+#26/26 tests passed successfully
+
 from src.lexer import Lexer
 from src.parser import Parser
 from src.evaluator import run_program
@@ -115,6 +117,16 @@ def test_machine_call_non_function():
         run_machine("14->13")
     with pytest.raises(Exception):
         run("14->13")
+
+#Following tests run on 7.11.26
+#All tests successfully passed on 7.11.26 @18.45
+def test_multiplication():
+    source = "14 * -1"
+    assert run_machine(source)[0] == run(source)[0]
+
+def test_addition():
+    source = "13 --14"
+    assert run_machine(source)[0] == run(source)[0]
 
 
 

@@ -511,6 +511,44 @@ def test_pipe_into_let():
     assert result == 143
 
 
+#Evaluator tests on unary minus
+#Tests ran on 7.11.26
+#All tests passed successfully on 7.11.26 @ 18.41
+def test_negative_number():
+    result, env = run("-14")
+    assert result == -14
+
+def test_negative_multiplication():
+    result, env = run("14 * -1")
+    assert result == -14
+
+def test_negative_number_multiplication():
+    result, env = run("-13 * 2")
+    assert result == -26
+
+def test_both_negative_multiplication():
+    result, env = run("-13 * -3")
+    assert result == 39
+
+def test_assignment():
+    result, env = run("let x = -14\n x")
+    assert result == -14
+
+def test_addition():
+    result, env = run("13 -- 14")
+    assert result == 27
+
+#Test ran on 7.11.26
+#Test failed on 7.11.26 @18.41
+#Test re-ran on 7.11.26
+#Test passed successfully on 7.11.26 @18.44 --> error in test function fixed
+def test_function():
+    result, env = run("fn id(x){x}\nid -> -14")
+    assert result == -14
+
+
+
+
 #Tests on main (general stuff)
 #Test failed on 23.10.26 @21.30pm
 #Error fixed, test rerun, and test passed successfully on 23.10.26 @21.35pm
