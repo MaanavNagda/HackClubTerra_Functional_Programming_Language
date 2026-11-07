@@ -6,12 +6,21 @@
         </title>
         <!-- Pyodide is CPython that is compiled to WebAssembly, and allows you to run real python in the browser, without needing an actual server-->
         <script src="https://cdn.jsdelivr.net/pyodide/v314.0.7/full/pyodide.js"></script>
+        <link rel ="stylesheet"href = "https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+        <script src = "https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+    
+    <style>
+        .cm-s-default .cm-keyword {color:#280137; font-weight:bold}
+        .cm-s-default .cm-number {color:#b45309;}
+        .cm-s-default .cm-comment {color:#ff9bf0; font-style:italic}
+        .cm-s-default .cm-operator {color:#000f89;}
+    </style>
     </head>
     <body>
         <h1>
             Tau Web Playground
         </h1>
-        <textarea id="code" rows="10" cols="60"> let x = 5 
+        <textarea id="code" rows ="10" cols="60"> let x = 5
             x + 3
         </textarea>
         <br>
@@ -24,6 +33,35 @@
         <!--module allows the top level await-->
         <script type="module">
 
+            //creating the CodeMirror code editor
+            CodeMirror.defineMode("tau", function() {
+                return {
+                    token: function(stream, state) {
+                        //;; comments run to the end of the line
+                        if (stream.match(";;")) {
+                           stream.skipToEnd();
+                           return "comment";
+                        }
+                        if (stream.eatSpace()) return null;
+                        //Numbers
+                        if (stream.match(/^\d+(\.\d+)?/)) return "number";
+                        //keywords - elseif is tried before else so it isnt split off
+                        if (stream.match(/^(elseif|let|if|then|else|fn|true|false)\b/)) return "keyword";
+                        //two character operators, MUST be matched before signle character ones, so they aren't split up
+                        if (stream.match(/^(->|\|>|==|!=|<=|>=)/)) return "operator";
+                        //single character operators, and punctuation
+                        if (stream.match(/^[+\-*\/%=(){}|<>!]/)) return "operator";
+                        //identifiers stay unstyled
+                        if (stream.match(/^[a-zA-Z_]\w*/)) return null;
+                        stream.next();
+                        return null;
+                    }
+                }
+            });
+            const editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+                mode: "tau",
+                lineNumbers: true
+            });
             //downloads aand boots the python runtime, which may be a bit slow, but is a one time thing only
             const pyodide = await loadPyodide();
             
@@ -51,7 +89,7 @@
                 console.log("run clicked")
                 try {
                     //push the editor's text into Python's global namespace
-                    pyodide.globals.set("user_source", document.getElementById("code").value);
+                    pyodide.globals.set("user_source",editor.getValue());
                     //runPythonAsync returns the LAST expression's value, which is why it is wrapped in a _run(), as a bare try or an except is a statement, and so returns nothing
                     const result = await pyodide.runPythonAsync(`
                         def _run(src):

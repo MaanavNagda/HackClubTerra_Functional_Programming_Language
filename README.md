@@ -1,7 +1,10 @@
 # HackClubTerra_Functional_Programming_Language
 This is a repository for my submission to the Hack Club Terra programming competition
 
-My submission is creating my own functional programming language, with time-travel features (by treating time as a sinusodial wave, rather than linear), allowing for programs to revert time, and quantum features, allowing for parallel features
+My submission is creating my own functional programming language, with time-travel features (by treating time as a sinusoidal wave, rather than linear), allowing for programs to revert time, and quantum features, allowing for parallel features
+
+## Niche
+Tau acts as a speculative "what-if" engine for decisions, due to its time travelling and multi-branch processing. It can be used for simulating real-world scenarios, e.g. how closing a road will affect the traffic elsewhere, as multiple factors and parameters can be fed into the machine, as they can vary across timelines, and only the winner will be output 
 
 ## Try it
 Live playground link
