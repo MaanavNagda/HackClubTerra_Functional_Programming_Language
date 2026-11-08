@@ -152,3 +152,135 @@ def run_program_machine(statements,env):
     while state[0] != "halt":
         state = step(state[0], state[1], state[2])
     return (state[1], state[2])
+
+#This is a stepper. It is the same driver as the run_program_machine, but it records every state into a tracelist
+#trace[0] is the starting state, and trace[-1] is the halt state --> this powers both the step-forward feature, and later the rewind feature
+def run_stepped(statements, env):
+    env = {**BUILTINS, **env}
+    state = (Body(statements), env, [])
+    trace = [state]
+    while state[0] != "halt":
+        state = step(state[0], state[1], state[2])
+        trace.append(state)
+    return trace
+
+def fmt_val(v):
+    #runtime vlaue -> a short display string
+    #Closures are not exampnded, as a closure's env can contain itself, so printin git would never end
+    #A boolean is checked before integers, as every boolean is also an integer in python
+
+    if isinstance(v, bool):
+        if v:
+            return "true"
+        else:
+            return "false"
+    if isinstance(v, int):
+        return str(v)
+    if v is None:
+        return "none"
+    if isinstance(v, Builtin):
+        return "builtin:" + v.name
+    if isinstance(v, closure):
+        return "fn(" + v.param + "){...}"
+    return str(v)
+
+def fmt_node(n):
+    #Ast node -> tuaish source string
+    # this is sued for control, and for theexpression fields inside kont frmaes
+    # bodies are plain listsof statements, and so they are handled too
+    if isinstance(n, Number):
+        return str(n.value)
+    if isinstance(n, Bool):
+        if n.value:
+            return "true"
+        else:
+            return "false"
+    if isinstance(n, Var):
+        return n.name
+    if isinstance(n, BinOp):
+        return fmt_node(n.left) + " " + n.op + " " + fmt_node(n.right)
+    if isinstance(n, If):
+        s = "if " + fmt_node(n.cond) + " then " + fmt_node(n.then)
+        if n.else_branch is not None:
+            s = s + " else " + fmt_node(n.else_branch)
+        return s
+    if isinstance(n, Call):
+        return fmt_node(n.func) + " -> " + fmt_node(n.arg)
+    if isinstance(n, Lambda):
+        return "fn(" + n.param + "){" + fmt_node(n.body) + "}"
+    if isinstance(n, FnDef):
+        return "fn " + n.name + "(" + n.param + "){" + fmt_node(n.body) + "}"
+    if isinstance(n, Let):
+        return "let " + n.name + " = " + fmt_node(n.value)
+    if isinstance(n, Body):
+        return "{" + fmt_node(n.statements) + "}"
+    if isinstance(n, list):
+        out = ""
+        first = True
+        for item in n:
+            if not first:
+                out = out + "; "
+            out = out + fmt_node(item)
+            first = False
+        return out
+    if n is None:
+        return "none"
+    return str(n)
+
+def fmt_frame(f):
+    #kont frame -> short display string
+    #savedEnv is NEVER printed, as it is a whole environment, which is huge, and can contain itself
+    #Rest statements is shown as a count only, and not dumped, to keep frames one line each, while still giving an indication of progress
+    if isinstance(f, BinOpR):
+        return "BinOpR(" + f.op + ", " + fmt_node(f.rightExpr) + ")"
+    if isinstance(f, BinOpDo):
+        return "BinOpDo(" + f.op + ", " + fmt_val(f.leftValue) + ")"
+    if isinstance(f, IfKont):
+        return "IfKont(then " + fmt_node(f.thenExpr) + ", else " + fmt_node(f.elseExpr) + ")"
+    if isinstance(f, CallArg):
+        return "CallArg("  + fmt_node(f.argExpr) + ")"
+    if isinstance(f, ApplyKont):
+        return "ApplyKont(" + fmt_val(f.funcValue) + ")"
+    if isinstance(f, LetKont):
+        return "LetKont(" + f.name + ", " + len(f.restStmts) + " left)"
+    if isinstance(f, Discard):
+        return "Discard(" + len(f.restStmts) + " left)"
+    return str(f)
+
+def format_state(state):
+    #One machine state is the display string
+    #state is the (control, env, kont) tuple that step() consumes and produced
+    control = state[0]
+    env = state[1]
+    kont = state[2]
+
+    #control can be the halt marker, a finished value, or an expression still being evaluated
+    if control == "halt":
+        c = "halt"
+    else:
+        if is_value(control):
+            c = fmt_val(control)
+        else:
+            c = fmt_node(control)
+
+    #env is the name of the value, every binding is shown, including builtins 
+    e = "{"
+    first = True
+    for name in env:
+        if not first:
+            e = e + ", "
+        e = e + name + ": " + fmt_val(env[name])
+        first= False
+    e = e + "}"
+
+    #kont is a list of frames, top of the stack is first, and "|" acts as a divider, whic keeps the frames easily readable
+    k = "["
+    first = True
+    for f in kont:
+        if not first:
+            k = k + " | "
+        k = k + fmt_frame(f)
+        first = False
+    k = k + "]"
+
+    return "control: " + c + "\n" + "env: " + e + "\n" + "kont: " + k
