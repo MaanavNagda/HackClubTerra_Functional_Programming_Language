@@ -26,6 +26,10 @@
         <br>
         <!--This temporarily disables the run button, until the runtime pacakge has finished downloading (which shouldn't be too long as it is only like 10 megs). This is necessary as otherwise users WILL click run too early-->
         <button id="run" disabled>Run</button>
+        <button id="importBtn">Import</button>
+        <button id="exportBtn">Export</button>
+        <!-- file picker - import accepts .txt and .tau files, valid tau files will run, but even if the txt file has valid tau syntax, there is no guarentee it will run -->
+         <input type ="file" id="import" accept = ".txt,.tau" hidden>
         <!--Friendly message so the user knows the system is working as expected, and hasn't just crashed-->
         <div id = "loading"> loading Python runtime...</div>
         <pre id="output"></pre>
@@ -61,6 +65,29 @@
             const editor = CodeMirror.fromTextArea(document.getElementById("code"), {
                 mode: "tau",
                 lineNumbers: true
+            });
+
+            //Export: turns the editor's text into a downloadable .tau fil;e
+            document.getElementById("exportBtn").addEventListener("click", () => {
+                const blob = new Blob([editor.getValue()], {type:"text/plain"});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = "program.tau";
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+
+            //Import: picks a file, reads it, and loads into into the editor. Expects a .tau file, but tolerates .txt files
+            document.getElementById("importBtn").addEventListener("click", () => {
+                document.getElementById("import").click();
+            });
+            document.getElementById("import").addEventListener("change", (e) =>{
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (ev) => editor.setValue(ev.target.result);
+                reader.readAsText(file);
             });
             //downloads aand boots the python runtime, which may be a bit slow, but is a one time thing only
             const pyodide = await loadPyodide();
