@@ -33,7 +33,7 @@
         <!--Friendly message so the user knows the system is working as expected, and hasn't just crashed-->
         <div id = "loading"> loading Python runtime...</div>
         <pre id="output"></pre>
-        
+         
         <!--module allows the top level await-->
         <script type="module">
 
@@ -93,7 +93,7 @@
             const pyodide = await loadPyodide();
             
             //copies the files of the programming language into the Pyodide virtual file system, so the inter-file relations and imports work as expected
-            const files = ["src/__init__.py", "src/tokens.py", "src/lexer.py", "src/ast_nodes.py", "src/parser.py", "src/evaluator.py", "src/machine.py"]
+            const files = ["src/__init__.py", "src/tokens.py", "src/lexer.py", "src/ast_nodes.py", "src/parser.py", "src/evaluator.py", "src/machine.py", "src/rpn.py"]
             pyodide.FS.mkdirTree("/home/pyodide/src")
             
             //fetch text
