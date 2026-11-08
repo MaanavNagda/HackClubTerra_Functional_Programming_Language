@@ -1,0 +1,27 @@
+;; Tau demo - lambdas: anonymous functions as variables
+
+;;called immediately, no name needed at all
+fn(x){x+11} -> 13 ;;outputs 24, doens't need to be asigned a name before it runs
+
+;;stored in a variable first, then applied later
+let undecuple = fn(x){x * 11}
+undecuple -> 13 ;;outputs 143
+
+;;passed as an argument to another function
+fn apply(f){f ->11}
+apply -> fn(x){x*14} ;;outputs 154
+
+;;returned from a function (this is also how multi-argument functions work (currying))
+fn adder(x){fn(y){x + y}}
+let add14 = adder -> 14
+add14 -> 11 ;;outputs 25
+
+;; nested lambdas --> left association
+fn scale3(a){fn(b){fn(c){a * b + c}}}
+scale3 -> 11 -> 13 -> 14 ;; outputs 157
+
+;;a lambda with a multi-statement body
+let stats = fn(x){let undecuple = x * 11
+undecuple + 13}
+stats -> 14 ;; outputs 167
+

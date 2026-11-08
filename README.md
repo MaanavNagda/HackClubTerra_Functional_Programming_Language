@@ -4,7 +4,7 @@ This is a repository for my submission to the Hack Club Terra programming compet
 My submission is creating my own functional programming language, with time-travel features (by treating time as a sinusoidal wave, rather than linear), allowing for programs to revert time, and quantum features, allowing for parallel features
 
 ## Niche
-Tau acts as a speculative "what-if" engine for decisions, due to its time travelling and multi-branch processing. It can be used for simulating real-world scenarios, e.g. how closing a road will affect the traffic elsewhere, as multiple factors and parameters can be fed into the machine, as they can vary across timelines, and only the winner will be output 
+Tau acts as a speculative "what-if" engine for decisions, due to its time travelling and multi-branch processing. It can be used for simulating real-world scenarios, e.g. how closing a road will affect the traffic elsewhere, as multiple factors and parameters can be fed into the machine, as they can vary across timelines, and only the winner will be output. 
 
 ## Try it
 Live playground link
@@ -16,6 +16,7 @@ python main.py
 
 python main.py examples/hello.tau
 ^^ Runs an example program in the Tau language. 
+Also lambdas.tau, numbers.tau, conditionals.py, and piplines.py for extra example programs
 
 ## What Tau is today
 Tau is a functional programming language written entirely in python. It features a lexer, a recursive-descent parser, and two evaluators. It has the original naive tree walk evaluator, and a CEK style step machine where the whole evaluation state (control, env, kont) is plain data - this is what makes the upcoming time-travel feature possible, and both engines are proven equivalent through the oracle test suite. It currently supports let bindings, arithmetic with BODMAS precedence, if/elseif/else conditionals, comparisons and booleans, ;; comments, named functions with closures and recursion, anonymous lambdas, -> application and |> pipelines. It can run in the web playground (which runs on the CEK machine), as an interactive REPL, and file execution, with --engine naive or --engine machine choosing the evaluator
