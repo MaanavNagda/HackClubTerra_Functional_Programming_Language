@@ -90,12 +90,16 @@ def test_functional_boundary():
         
 
 #Payoff test
-#Following tests run on 8.11.26'
+#Following tests run on 8.11.26
 #All successfully passed on 8.11.26 @20.12
+#Following test rerun on 8.11.26
+#Failed on 8.11.26 @20.45
+#Test is now outdated, as CEK machine has abosrbed the optimisation, and so is now faster overall the RPN, updating to reflect new status quo
 def test_improvement():
     node = Parser(Lexer("1 + 2 * 3").tokenize()).parse_program()[0]
     value, steps = eval_rpn(node, {})
     cek_value, cek_steps = count_cek_steps(node, {})
     assert cek_value == value
-    assert steps < cek_steps
+    assert steps > cek_steps
     print(steps, cek_steps) #When test run, this steps was 5, cek steps was 10
+    #When test was rerun, rpn was still 5, but CEK-RPN hybrid was only 2

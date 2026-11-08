@@ -1,11 +1,11 @@
-#30/30 tests passed successfully
+#31/31 tests passed successfully
 
 from src.lexer import Lexer
 from src.parser import Parser
 from src.evaluator import run_program
 from src.machine import run_program_machine, step, Body
 from src.machine import BinOpR, BinOpDo, IfKont, CallArg, ApplyKont, LetKont, Discard
-from src.ast_nodes import BinOp, Number
+from src.ast_nodes import BinOp, Number, Lambda
 import pytest
 
 def run(source):
@@ -157,13 +157,7 @@ def test_print_inside_functions():
 
 #Following tests ran on 2.11.26
 #All tests successfully passed on 2.11.26 @ 00.02 am
-def test_step_binop_pushes_right_frame():
-    node = BinOp("+", Number(1,0,0), Number(2,0,0), 0,0)
-    control, env, kont = step(node, {}, [])
-    assert control.value == 1
-    assert isinstance(kont[0], BinOpR)
-    assert kont[0].op == "+"
-    assert kont[0].rightExpr.value == 2
+
 
 def test_step_literal_becomes_value():
     (control, env, kont) = step(Number(14,0,0), {}, [])
@@ -190,3 +184,23 @@ def test_step_if_kont_picks_else():
     (control, env, kont) = step(False, {}, [frame])
     assert control.value== 12
 
+#Following tests re-run on 8.11.26
+#Test failed on 8.11.26 @20.38
+#Test updated to reflect new CEK x RPN hybrid architecture, as failure was due it testing a no loger existing feature
+#Test reran on 8.11.26
+#Test passed successfully @20.45
+def test_step_binop_pushes_right_frame():
+    node = BinOp("+", Number(1,0,0), Lambda("x", [], 0, 0), 0,0)
+    control, env, kont = step(node, {}, [])
+    assert control.value == 1
+    assert isinstance(kont[0], BinOpR)
+    assert kont[0].op == "+"
+    assert isinstance(kont[0].rightExpr, Lambda)
+
+#Following tests run on 8.11.26
+#All successfully passed on 8.11.26 @20.45
+def test_step_arith_uses_rpn():
+    node = BinOp("+", Number(1,0,0), Number(2,0,0), 0,0)
+    control, env, kont = step(node, {}, [])
+    assert control == 3
+    assert not kont
