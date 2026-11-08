@@ -1,4 +1,4 @@
-#85/85 tests successfuly
+#100/100 tests successfuly
 from src.lexer import Lexer
 from src.parser import Parser
 from src.evaluator import run_program
@@ -546,6 +546,74 @@ def test_addition():
 def test_function():
     result, env = run("fn id(x){x}\nid -> -14")
     assert result == -14
+
+
+#Evaluator tests on print function
+#Following tests ran on 7.11.26
+#All passed successfully on 7.11.26 @13.13
+def test_print_value():
+    result, env = run("print -> 14")
+    assert result == 14
+
+def test_print_pipeline():
+    result, env = run_program(Parser(Lexer("13|> print").tokenize()).parse_program(),{})
+    assert result == 13
+
+def test_print_let():
+    result, env = run_program(Parser(Lexer("let p = print\n p -> 14").tokenize()).parse_program(), {})
+    assert result == 14
+
+def test_print_function():
+    result, env = run_program(Parser(Lexer("fn apply(f){f->11}\napply->print").tokenize()).parse_program(), {})
+    assert result == 11
+
+def test_print_shadowing():
+    result, env = run_program(Parser(Lexer("let print = fn(x){x * 11}\n print -> 13").tokenize()).parse_program(), {})
+    assert result == 143 #user binding should win
+
+def test_print_return_value_behaviour_pipeline():
+    result, env = run_program(Parser(Lexer("13|> print |> fn(z){z+11}").tokenize()).parse_program(), {})
+    assert result == 24
+
+def test_print_return_value_behaviour_precedence():
+    result, env = run_program(Parser(Lexer("(print -> 14) + 11").tokenize()).parse_program(), {})
+    assert result == 25 #14 outputted, returns 25
+
+def test_print_return_value_behaviour_let():
+    result, env = run_program(Parser(Lexer("let x = print ->14\n x * 11").tokenize()).parse_program(), {})
+    assert result == 154 #outputs 14, returns 154
+
+def test_print_argument_evaluation_addition():
+    result, env = run_program(Parser(Lexer("print -> 14 + 13").tokenize()).parse_program(), {})
+    assert result == 27 #both output and returned value is 27
+
+def test_print_argument_evaluation_conditionals():
+    result, env = run_program(Parser(Lexer("print -> 14 > 11").tokenize()).parse_program(), {})
+    assert result == True
+
+def test_print_argument_evaluation_unary_minus():
+    result, env = run_program(Parser(Lexer("print -> -14").tokenize()).parse_program(), {})
+    assert result == -14
+
+def test_print_inside_function():
+    result, env = run_program(Parser(Lexer("fn f(x){print->x}\n f->14").tokenize()).parse_program(), {})
+    assert result == 14
+
+def test_print_inside_conditional_branch():
+    result, env = run_program(Parser(Lexer("if 14>11 then print -> 13 else print ->11").tokenize()).parse_program(), {})
+    assert result == 13
+
+def test_print_inside_concitional_branch_false():
+    result, env = run_program(Parser(Lexer("if 11>14 then print -> 13 else print ->11").tokenize()).parse_program(), {})
+    assert result == 11
+
+def test_print_multiple_times(): #test number 100!!
+    result, env = run_program(Parser(Lexer("print ->14\n print->11").tokenize()).parse_program(), {})
+    assert result == 11 #outputs both, returns just 11
+
+
+
+
 
 
 

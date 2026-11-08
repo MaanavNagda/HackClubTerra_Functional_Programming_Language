@@ -1,4 +1,4 @@
-#26/26 tests passed successfully
+#30/30 tests passed successfully
 
 from src.lexer import Lexer
 from src.parser import Parser
@@ -128,7 +128,28 @@ def test_addition():
     source = "13 --14"
     assert run_machine(source)[0] == run(source)[0]
 
+#Following tests run on 7.11.26
+#All tests successfully passed on 7.11.26 @ 13.15
+def test_print_value():
+    source = "print -> 14"
+    assert run_machine(source)[0] == run(source)[0]
 
+def test_print_pipeline_function():
+    source = "13 |> print|> fn(x){x + 11}"
+    assert run_machine(source)[0] == run(source)[0]
+
+def test_print_return_value_behaviour():
+    source = "(print -> 14) + 11"
+    assert run_machine(source)[0] == run(source)[0]
+
+#Following test run on 7.11.26
+#Test failed on 7.11.26 @13.15
+#Error found in test function itself
+#Test rerun on 7.11.26
+#Test successfully passed on 7.11.26 @13.17
+def test_print_inside_functions():
+    source = "fn f(x){print ->x}\nf ->14"
+    assert run_machine(source)[0] == run(source)[0]
 
 
 

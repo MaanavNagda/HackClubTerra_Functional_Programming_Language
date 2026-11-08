@@ -10,6 +10,27 @@ class closure():
         self.body = body
         self.env = env
 
+#a builtin is a named primitive that is provided by the language itself. it is stored as a value in the starting env, not as a keyword, so it can be passed, stored, and shadowed like everything else.
+#however like a keyword, its name is also reserved exclusively for it.
+
+class Builtin():
+    def __init__(self, name):
+        self.name = name
+
+
+#This is the builtins taht every program starts with:
+BUILTINS = {"print": Builtin("print")}
+
+#This runs the actual implementation of the builtin. It is shared with the machien so that both engines agree
+def call_builtin(name, arg):
+    if name == "print":
+        print(arg)
+        return arg #This returns the variable so that the pipelines keep flowing
+    else:
+        raise Exception(f"unknown builtin {name}") #All builtins are defined above, and so if it doesn't match it, then an error is thrown
+
+
+
 
 
 #evaluate() handles the expressions
@@ -24,6 +45,9 @@ def evaluate(node, env):
     if isinstance(node, Call):
         func = evaluate(node.func, env)
         arg = evaluate(node.arg, env)
+        #A builtin call runs its implementation directly, so there is no closure body to enter
+        if isinstance(func, Builtin):
+            return call_builtin(func.name, arg)
         if not isinstance(func, closure):
             raise Exception(f"calling non-function")
         callEnv = {**func.env}
@@ -78,11 +102,13 @@ def evaluate(node, env):
 #It runs the list of statements, and then returns the result
 #"Let" is part of run_program and not evaluate because it updates env, which only a statement can do
 def run_program(statements, env):
+    #Every program starts with the builtin bound, so user bindings can still shadow them, since env is merged OVER builtins, not theother way round
+    env = {**BUILTINS,**env}
     result = None
     for statement in statements:
         if isinstance(statement, Let):
             value = evaluate(statement.value, env) #The RHS still sees the old env
-            #if the bound value is a function, then its name goes inside its OWN caputred env, so a let-bound lambda can still call itself recursively.
+            #if the bound value is a function, then its name goes inside its OWN captured env, so a let-bound lambda can still call itself recursively.
             if isinstance(value, closure):
                 value.env = {**env, statement.name : value}
             env = {**env, statement.name: value} #This is the new dict, which never mutates
