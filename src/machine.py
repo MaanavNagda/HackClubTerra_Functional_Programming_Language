@@ -1,5 +1,5 @@
 from .ast_nodes import Number, Var, BinOp, Let, If, Bool, FnDef, Call, Lambda
-from .evaluator import closure, Builtin, call_builtin, BUILTINS #The CEK machine reuses the naive evaluator's builtin impelementatin so that both engines agree
+from .evaluator import closure, Builtin, call_builtin, apply_op, BUILTINS #The CEK machine reuses the naive evaluator's builtin impelementatin so that both engines agree
 from dataclasses import dataclass
 #CEK machine is the step evaluator. State = (control, env, kont).
 #Every part of it is in plain data, so a state can be printed,  saved, and later rewound or even interleaved with other states. It is this feature that makes the time travel aspects possible.
@@ -58,32 +58,7 @@ class Discard:
     restStmts: list
     savedEnv:object
 
-#operator calculations
-#shared with the evaluator so both engines agree on operator usage
-def apply_op(op, left, right):
-    if op == "/":
-        if right == 0:
-            raise Exception(f"division by {right} error")
-        return left/right
-    if op == "+":
-        return left + right
-    if op == "-":
-        return left - right
-    if op =="*":
-        return left * right
-    if op =="==":
-        return left == right
-    if op =="!=":
-        return left != right
-    if op=="<":
-        return left < right
-    if op ==">":
-        return left > right
-    if op == "<=":
-        return left <= right
-    if op == ">=":
-        return left >= right
-    raise Exception(f"unknown operator")
+ 
 
 #one small reduction. two kinds of step: an expression descends into a subexpression and pushes a frame, or a finished value pops the top frame which decides what happens next
 def step(control, env, kont):

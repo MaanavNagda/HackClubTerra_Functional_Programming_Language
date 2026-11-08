@@ -1,5 +1,5 @@
 from .ast_nodes import Number, Var, BinOp, Bool
-from .machine import apply_op, step
+from .evaluator import apply_op
 
 def to_postfix(node):
     if isinstance(node, Number) or isinstance(node, Bool):
@@ -33,10 +33,12 @@ def eval_rpn(node,env):
     return (stack[0], steps)
 
 
-def count_cek_steps(node, env):
-    state= (node, env, [])
-    steps = 0
-    while state[0] != "halt":
-        state = step(state[0], state[1], state[2])
-        steps += 1
-    return (state[1], steps)
+def is_arith(node):
+    #True only when the whole subtree is pure arithmetic/comparison
+    #Only valid for number, bool, var, or binop
+    #anything else follows the regular CEK decscent
+    if isinstance(node, Number) or isinstance(node, Bool) or isinstance(node, Var):
+        return True
+    if isinstance(node, BinOp):
+        return is_arith(node.left) and is_arith(node.right)
+    return False

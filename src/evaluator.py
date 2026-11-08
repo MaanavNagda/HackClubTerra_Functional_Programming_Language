@@ -29,8 +29,33 @@ def call_builtin(name, arg):
     else:
         raise Exception(f"unknown builtin {name}") #All builtins are defined above, and so if it doesn't match it, then an error is thrown
 
-
-
+#Moved from machine.py to evaluator.py to fix the circular dependecy crash that would have otherwise occurred when machine.py tried to call rpn.py (as rpn.py is calling stuff from machine.py as well)
+#operator calculations
+#shared with the evaluator so both engines agree on operator usage
+def apply_op(op, left, right):
+    if op == "/":
+        if right == 0:
+            raise Exception(f"division by {right} error")
+        return left/right
+    if op == "+":
+        return left + right
+    if op == "-":
+        return left - right
+    if op =="*":
+        return left * right
+    if op =="==":
+        return left == right
+    if op =="!=":
+        return left != right
+    if op=="<":
+        return left < right
+    if op ==">":
+        return left > right
+    if op == "<=":
+        return left <= right
+    if op == ">=":
+        return left >= right
+    raise Exception(f"unknown operator")
 
 
 #evaluate() handles the expressions

@@ -3,10 +3,21 @@
 from src.lexer import Lexer
 from src.parser import Parser
 from src.evaluator import run_program
-from src.machine import BinOpR, BinOpDo, IfKont, CallArg, ApplyKont, LetKont, Discard
+from src.machine import step, BinOpR, BinOpDo, IfKont, CallArg, ApplyKont, LetKont, Discard
 from src.ast_nodes import BinOp, Number
-from src.rpn import eval_rpn, count_cek_steps
+from src.rpn import eval_rpn
 import pytest
+
+
+#Helper function
+def count_cek_steps(node, env):
+    state= (node, env, [])
+    steps = 0
+    while state[0] != "halt":
+        state = step(state[0], state[1], state[2])
+        steps += 1
+    return (state[1], steps)
+
 
 
 #Correctness tests
