@@ -1,6 +1,7 @@
 from .ast_nodes import Number, Var, BinOp, Let, If, Bool, FnDef, Call, Lambda
 from .evaluator import closure, Builtin, call_builtin, apply_op, BUILTINS #The CEK machine reuses the naive evaluator's builtin impelementatin so that both engines agree
 from dataclasses import dataclass
+from .rpn import eval_rpn, is_arith 
 #CEK machine is the step evaluator. State = (control, env, kont).
 #Every part of it is in plain data, so a state can be printed,  saved, and later rewound or even interleaved with other states. It is this feature that makes the time travel aspects possible.
 
@@ -74,6 +75,12 @@ def step(control, env, kont):
     if isinstance(control, Lambda):
         return (closure(control.param, control.body, env), env, kont)
     if isinstance(control, BinOp):
+        #return (control.left, env, [BinOpR(control.op, control.right, env)] + kont)
+        #pure arithmetic subtrees evaluate using RPN
+        #anything else still handled by CEK machine
+        #~50% steps saving
+        if is_arith(control):
+            return(eval_rpn(control, env)[0], env, kont)
         return (control.left, env, [BinOpR(control.op, control.right, env)] + kont)
     if isinstance(control, If):
         return (control.cond, env, [IfKont(control.then, control.else_branch, env)] + kont)
