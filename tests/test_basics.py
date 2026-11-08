@@ -1,4 +1,4 @@
-#100/100 tests successfuly
+#102/102 tests successfuly
 from src.lexer import Lexer
 from src.parser import Parser
 from src.evaluator import run_program
@@ -567,10 +567,6 @@ def test_print_function():
     result, env = run_program(Parser(Lexer("fn apply(f){f->11}\napply->print").tokenize()).parse_program(), {})
     assert result == 11
 
-def test_print_shadowing():
-    result, env = run_program(Parser(Lexer("let print = fn(x){x * 11}\n print -> 13").tokenize()).parse_program(), {})
-    assert result == 143 #user binding should win
-
 def test_print_return_value_behaviour_pipeline():
     result, env = run_program(Parser(Lexer("13|> print |> fn(z){z+11}").tokenize()).parse_program(), {})
     assert result == 24
@@ -611,8 +607,28 @@ def test_print_multiple_times(): #test number 100!!
     result, env = run_program(Parser(Lexer("print ->14\n print->11").tokenize()).parse_program(), {})
     assert result == 11 #outputs both, returns just 11
 
+#Following test rerun on 8.11.26
+#Test failed on 8.11.26 @ 21.14
+#This is because this is no longer a feature, as let print = is no longer valid. This was to test that user binding would win when reserved hadnt been implemented, but now it has been implemented, it is failing as it should
+#Therefore, test will simply be commented out, as it has served its purpose, and is no longer valid.
+#def test_print_shadowing():
+ #   result, env = run_program(Parser(Lexer("let print = fn(x){x * 11}\n print -> 13").tokenize()).parse_program(), {})
+  #  assert result == 143 #user binding should win
 
+#Evaluator test on reserving builtin keywords
+#Following tests run on 8.11.26
+#Tests passed successfully on 8.11.26 @21.16
+def test_cannot_redefine_builtin_let():
+    with pytest.raises(Exception):
+        run_program(Parser(Lexer("let print = 5").tokenize()).parse_program(), {})
 
+def test_cannot_redefine_builtin_function():
+    with pytest.raises(Exception):
+        run_program(Parser(Lexer("fn print(x){x}").tokenize()).parse_program(), {})
+
+def test_builtin_still_capable():
+    result, env = run_program(Parser(Lexer("print ->14").tokenize()).parse_program(), {})
+    assert result == 14
 
 
 

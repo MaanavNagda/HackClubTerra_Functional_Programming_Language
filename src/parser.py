@@ -5,6 +5,10 @@ from .ast_nodes import Let, BinOp, Number, Var, If, Bool, FnDef, Call, Lambda
 #The deeper functions bind together more, and this is what allows things like * to be completed before +
 
 
+#list of reserved names that the users cannot bind, which are the builtin keywords
+RESERVED = {"print"}
+
+
 class Parser:
     #tokens is the lexer's output list, and it ends with an EOF token
     #pos is the current index into it (hence why it starts at 0)
@@ -34,6 +38,8 @@ class Parser:
     def parse_let(self):
         let_tok = self.expect(TokenType.LET) #Consumes the let
         name = self.expect(TokenType.IDENT).value  #.value is the name string
+        if name in RESERVED:
+            raise Exception(f"{name} is already bound to a builtin keyword. Choose something else")
         self.expect(TokenType.EQUALS)
         value = self.parse_expression()  #This parses the full RHS expression
         return Let(name, value, let_tok.line, let_tok.col)
@@ -43,6 +49,8 @@ class Parser:
     def parse_fndef(self):
         fn_tok = self.expect(TokenType.FN)
         name = self.expect(TokenType.IDENT).value
+        if name in RESERVED:
+            raise Exception(f"{name} is already bound to a builtin keyword. Choose something else")
         self.expect(TokenType.LPAREN)
         param = self.expect(TokenType.IDENT).value
         self.expect(TokenType.RPAREN)
@@ -147,7 +155,7 @@ class Parser:
             self.expect(TokenType.RBRACE)
             return Lambda(param, body, tok.line, tok.col)
         #unary minus (like -14 or x * -1) now desugars to 0 - operand, so the evaluators don't see a brand new node type, and instead just see a regular subtraction.
-        #It only activates when an operand is expected, so "a - b" sill parses as subtraction
+        #It only activates when an operand is expected, so "a - b" still parses as subtraction
         if tok.type == TokenType.MINUS:
             operand = self.parse_primary()
             return BinOp("-", Number(0, tok.line, tok.col), operand,tok.line, tok.col)
