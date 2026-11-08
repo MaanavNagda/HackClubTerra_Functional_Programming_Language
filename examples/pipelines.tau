@@ -3,17 +3,17 @@
 
  fn undecuple(x){x * 11}
  fn add14(x){x+14}
- 13 |> undecuple |> add14    ;;13 is passed into undecuple, which gives a result of 143. This result is then piped into add14, which outputs 157
+ 13 |> undecuple |> add14  |> print   ;;13 is passed into undecuple, which gives a result of 143. This result is then piped into add14, which outputs 157
 
  ;;named functions and lambdas can freely mix in one chained
- 11 |> fn(x){x + 11} |> undecuple |> fn(x){x-13}
+ 11 |> fn(x){x + 11} |> undecuple |> fn(x){x-13} |> print
  ;;11 -> 22 -> 242 -> 229
 
  ;;pipelines work inside let bindings as well
  let result = 14 |>fn(x){x*13} |> fn(x){x+14}
- result ;; 14 * 13 = 182, then 182 + 14 = 196
+ result |> print ;; 14 * 13 = 182, then 182 + 14 = 196
 
  ;;pipelines can be a part of currying as well, as the right side of |> can be anything
  fn adder(x){fn(y){x + y}}
- 14 |> (adder -> 11)   ;; adder is fed 11, but it is waiting for y, so y is fed 14, and we get 11  + 14 = 25
+ 14 |> (adder -> 11)  |> print ;; adder is fed 11, but it is waiting for y, so y is fed 14, and we get 11  + 14 = 25
 

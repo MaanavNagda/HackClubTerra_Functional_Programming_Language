@@ -1,21 +1,21 @@
 ;; Tau demo - conditionals: If/elseif/else, comparisons, booleas
 
 ;; comparisons produce booleans, which is what if ends up testing
-let big = 14 > 11
-let pick = if big then 13 else 14 ;; big > 11 evaluates to true, so when given the input of true, the if statement follows the true branch, and so outputs 13
+let big = 14 > 11 |> print
+let pick = (if big then 13 else 14)|>print ;; big > 11 evaluates to true, so when given the input of true, the if statement follows the true branch, and so outputs 13
 
 ;;if /elseif/else chains - each elseif is just a nested if
 let score = 13
-let grade = if score >=16 then 9
+let grade = (if score >=16 then 9
 elseif score >= 13 then 8
 elseif score >=11 then 7
-else 6
+else 6) |> print
 ;;score is 13, so it falls in the grade "B" category, as the chain is checked from top to bottom. Even though 13 is >= 11 and so would fall into the "C" category as well, it exits the if block as soon as the correct branch is found, so it still works
 
 ;;a simple boolean condition
-if 13 == 13 then 11 else 14   ;;the condition is true, and so the true branch is evaluated, and 11 is output
+(if 13 == 13 then 11 else 14) |> print   ;;the condition is true, and so the true branch is evaluated, and 11 is output
 
 ;;newsted if - an any of the three branches themsleves can itself be an if
-if 13>14 then 11
+(if 13>14 then 11
 else if 11 > 8 then 12
-else 13 ;; 13 is not greater than 14, so the else branch is evaluated, which itslef contains a new if statement, which is true, and so 12 is output
+else 13) |> print ;; 13 is not greater than 14, so the else branch is evaluated, which itslef contains a new if statement, which is true, and so 12 is output
