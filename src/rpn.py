@@ -2,16 +2,14 @@ from .ast_nodes import Number, Var, BinOp, Bool
 from .machine import apply_op, step
 
 def to_postfix(node):
-    if isinstance(node, Number) or isinstane(node, Bool):
-        return [("push", node,value)]
+    if isinstance(node, Number) or isinstance(node, Bool):
+        return [("push", node.value)]
     if isinstance(node, Var):
         return [("load", node.name)]
     if isinstance(node, BinOp):
-        to_postfix(node.right) += 1
-        [("op", node.op)] += 1
-        return to_postfix(node.left)
+        return to_postfix(node.left) + to_postfix(node.right) + [("op", node.op)]
     else:
-        raise Exception (f"rpm onlyhandles arithmetic and comparisons")
+        raise Exception (f"rpn only handles arithmetic and comparisons")
 
 
 def eval_rpn(node,env):
@@ -19,16 +17,16 @@ def eval_rpn(node,env):
     stack = []
     steps = 0
     for ins in program:
-        if ins == ("push", v):
-            stack.push(v)
-        if ins == ("load", name):
-            if name not in env:
-                stack.push(env[name])
+        if ins[0] == "push":
+            stack.append(ins[1])
+        if ins[0] == "load":
+            if ins[1] not in env:               
                 raise Exception(f"undefined variable")
-        if ins == ("op", op):
+            stack.append(env[ins[1]])
+        if ins[0] == "op":
             right = stack.pop()
             left = stack.pop()
-            stack.push(apply_op(op, left,right))
+            stack.append(apply_op(ins[1], left,right))
         steps += 1
     if len(stack) != 1:
         raise Exception(f"postfix stack malformed")
@@ -38,7 +36,7 @@ def eval_rpn(node,env):
 def count_cek_steps(node, env):
     state= (node, env, [])
     steps = 0
-    while state.control != "halt":
-        state = step(state.control, state.env, state.kont)
+    while state[0] != "halt":
+        state = step(state[0], state[1], state[2])
         steps += 1
-    return (state.vale, steps)
+    return (state[1], steps)
