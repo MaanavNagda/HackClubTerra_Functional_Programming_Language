@@ -43,3 +43,10 @@ Week 2:
 - CEK step machine, where control/env/kont state is plain, printable data (CEK machine necessary for time travel capabilities)
 - oracle tests asserting both engines produce the same output
 - --engine flag to pick which evaluator is chosen when running locally; the playground runs fully on the CEK machine
+
+Week 3:
+- print builtin - env bojnd value that returns its arguments so pipelines can keep flowing
+- builtin names are now reserved and  cannot be overwritten by user bindings
+- more example programs
+- step through functionality added to web playground and main cli (currently broken)
+- Swapped out basic text field  for Code mirror with pretty print
