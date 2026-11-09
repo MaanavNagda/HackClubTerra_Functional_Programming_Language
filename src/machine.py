@@ -291,6 +291,5 @@ def format_state(state):
         first = False
     k = k + "]"
 
-
     return "control: " + c + "\n" + resultLine + "env: " + e + "\n" + "kont: " + k
         
