@@ -1,0 +1,23 @@
+;; Tau demo - numbers: unary minus, parentheses, precendence (BODMAS)
+
+;;unary minus
+(-14) |> print ;;unary minus, ouptuts -14
+14 * (-1)  |> print;;multiplying by a negativce number, outputs -14
+(-14) * 1 |> print;;negaitve number being multiplied, outputs -14
+(-14) * (-1 )|> print;; both negative, ouptus 14
+
+13 -(- 14) |> print;; two minus makes a plus, outputa 27
+(-13)-14 |> print;; negative number being subtracted from, outputs -27
+(-13) + 14|>print;; negative number being added to, outputs 1
+-(-14 )|>print;;double negation, outputs 14
+
+;;unary minus also works on variables and call arguments
+let x = (-14)
+x * 13 |>print ;; outputs-182
+fn id(v){v}
+id -> (-13)   |>print;;outputs -13
+
+;;parentheses overriddes precedence
+(1 + 2) * 3 |> print;; outputs 9, as parentheses evaluated first 
+1 + 2 * 3 |>print;;outputs 7, as follows rules of BODMAS so 8 evaluated first, which is 6, then the 1 added to make 7
+
