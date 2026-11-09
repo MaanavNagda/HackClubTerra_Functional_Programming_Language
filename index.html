@@ -26,6 +26,7 @@
         <br>
         <!--This temporarily disables the run button, until the runtime pacakge has finished downloading (which shouldn't be too long as it is only like 10 megs). This is necessary as otherwise users WILL click run too early-->
         <button id="run" disabled>Run</button>
+        <button id = "step" disabled>Step</button>
         <button id="importBtn">Import</button>
         <button id="exportBtn">Export</button>
         <!-- file picker - import accepts .txt and .tau files, valid tau files will run, but even if the txt file has valid tau syntax, there is no guarentee it will run -->
@@ -66,6 +67,9 @@
                 mode: "tau",
                 lineNumbers: true
             });
+            let trace = null;
+            let pos =  0;
+            let stepSrc = null;
 
             //Export: turns the editor's text into a downloadable .tau fil;e
             document.getElementById("exportBtn").addEventListener("click", () => {
@@ -111,9 +115,14 @@
             
             //only enables run when everything is mounted and verified
             document.getElementById("run").disabled = false;
+            document.getElementById("step").disabled = false;
             document.getElementById("loading").hidden=true;
             document.getElementById("run").addEventListener("click", async () => {
                 console.log("run clicked")
+                trace = null;
+                pos = 0;
+                stepSrc = null;
+                document.getElementById("step").disabled = false;
                 try {
                     //push the editor's text into Python's global namespace
                     pyodide.globals.set("user_source",editor.getValue());
@@ -136,6 +145,41 @@
                     console.log("handler error:", err.message);
                 }
             });
+            document.getElementById("step").addEventListener("click", async () => {
+                try {
+                    //first step (or the code changed since), so we built the whole trace up front
+                    //states are plane strings, so JSON is the safe way across the Pyodide boundary
+                    if (trace === null || editor.getValue() !== stepSrc) {
+                        pyodide.globals.set("user_source", editor.getValue());
+                        const raw = await pyodide.runPythonAsync(`
+                            def _steps(src):
+                                try:
+                                    import json
+                                    from src.lexer import Lexer
+                                    from src.parser import Parser
+                                    from src.machine import run_stepped, format_state
+                                    ast = Parser(Lexer(src).tokenize()).parse_program()
+                                    return json.dumps([format_state(s) for s in run_stepped(ast, {})])
+                                except Exception as e:
+                                    return json.dumps([str(e)])
+                            _steps(user_source)
+                        `);
+                        trace = JSON.parse(raw);
+                        stepSrc = editor.getValue();
+                        pos = 0
+                    }
+                    if (pos < trace.length) {
+                        document.getElementById("output").textContent= trace[pos];
+                        pos += 1
+                    }
+                    //halt state is the last element, so reaching the end means done, and disabled till the next run
+                    if (pos >= trace.length) {
+                        document.getElementById("step").disabled = true;
+                    } 
+                } catch (err) {
+                    console.log("step handler error:", err.message);
+                }
+            })
         </script>
     </body>
 </html>
