@@ -250,30 +250,38 @@ def fmt_frame(f):
 def format_state(state):
     #One machine state is the display string
     #state is the (control, env, kont) tuple that step() consumes and produced
-    control = state[0]
-    env = state[1]
-    kont = state[2]
+    #HALT state is ("halt", value, env"), and thereis no kont any more
 
-    #control can be the halt marker, a finished value, or an expression still being evaluated
+    control = state[0]
+    resultLine = ""
+
+    #control can be thehalt marker, a finished value, or an expression still being evaluated
     if control == "halt":
-        c = "halt"
+        c= "halt"
+        resultLine = "result:" + fmt_val(state[1]) + "\n"
+        env = state[2]
+        kont = []
     else:
         if is_value(control):
             c = fmt_val(control)
         else:
             c = fmt_node(control)
+        env = state[1]
+        kont = state[2]
 
-    #env is the name of the value, every binding is shown, including builtins 
+    #env is name of value; every binding is shown, including builtins
     e = "{"
     first = True
     for name in env:
         if not first:
             e = e + ", "
         e = e + name + ": " + fmt_val(env[name])
-        first= False
+        first = False
     e = e + "}"
 
-    #kont is a list of frames, top of the stack is first, and "|" acts as a divider, whic keeps the frames easily readable
+
+    #kont is a list of frames, wit the topof stack being the first. 
+    #" | " is used to keep each frame readable, by acting as a separator for each frame
     k = "["
     first = True
     for f in kont:
@@ -283,4 +291,6 @@ def format_state(state):
         first = False
     k = k + "]"
 
-    return "control: " + c + "\n" + "env: " + e + "\n" + "kont: " + k
+
+    return "control: " + c + "\n" + resultLine + "env: " + e + "\n" + "kont: " + k
+        
