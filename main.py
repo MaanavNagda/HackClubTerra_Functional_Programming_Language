@@ -2,7 +2,7 @@ import sys
 from src.lexer import Lexer
 from src.parser import Parser
 from src.evaluator import run_program
-from src.machine import run_program_machine
+from src.machine import run_program_machine, run_stepped, format_state
 from src.repl import repl
 #Entry point of the system
 #Running this file gives the interactive REPL
@@ -14,12 +14,17 @@ from src.repl import repl
 #"--engine naive" selects the evaluator as the engine being used. As this is the simpler version (especially after the full time travelling features have been added), so the system defaults to naive. 
 #Any other arguments are treated as the file to be run
 engine = "naive"
+#Stepping flag for if they want to see the program execute line by line, or all at once
+stepping = False
 filename = None
 i = 1
 while i < len(sys.argv):
     if sys.argv[i] == "--engine":
         engine = sys.argv[i + 1]
         i = i + 2
+    elif sys.argv[i] == "--step":
+        stepping = True
+        i += 1
     else:
         filename = sys.argv[i]
         i = i + 1
@@ -31,11 +36,17 @@ if filename:
             source = f.read()
         ast = Parser(Lexer(source).tokenize()).parse_program()
         #the machine runs it through the CEK step machine, everything else uses the original tree walk evaluator
-        if engine == "machine":
+        if stepping:
+            #step requires the machine, so the --engine flag is ignored
+            trace = run_stepped(ast, {})
+            for state in trace:
+                print(format_state(state))
+                print("") #blank line in between states to help with readabliity
+        elif engine == "machine":
             result, env = run_program_machine(ast,{})
         else:
             result, env = run_program(ast, {})
-        if result is not None:
+        if not stepping and result is not None:
             print(result)
     except FileNotFoundError:
         print(f"File {filename} not found")
