@@ -1,4 +1,4 @@
-#111/115 tests successfuly
+#132/132 tests successfuly
 #Full test suite reran on 15.11.26 @10.43, 98 passed successfully, 4 (test_let_sequence, test_line_commit, test_comment_only_line, test_token_positions) failed, tests need updating because of the newline fix.
 #Full test suite reran on 15.11.26 @11.02, all passed successfully
 
@@ -188,6 +188,8 @@ def test_string_unterminated():
 
 
 #Lexer tests of lists
+#Following tests run on 15.11.26
+#All passed successfully on 15.11.26 @23.37
 def test_list_empty_tokens():
     tokens = Lexer("[]").tokenize()
     types = [t.type for t in tokens]
@@ -415,6 +417,8 @@ def test_string_node():
 
 
 #Parser tests on lists
+#Following tests run on 15.11.26
+#All passed successfully on 15.11.26 @23.37
 def test_list_node():
     ast = Parser(Lexer("[11,14]").tokenize()).parse_program()
     root = ast[0]
@@ -792,6 +796,8 @@ def test_string_as_call_arg():
 
 
 #Evaluator tests on lists
+#Following tests run on 15.11.26
+#All passed successfully on 15.11.26 @23.37
 def test_list_eval():
     result, env = run_program(Parser(Lexer("[13,14]").tokenize()).parse_program(), {})
     assert result == [13,14]

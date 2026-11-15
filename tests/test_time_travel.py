@@ -1,4 +1,4 @@
-#6/6 tests passed successfully
+#7/7 tests passed successfully
 
 
 from src.lexer import Lexer
@@ -73,6 +73,8 @@ def test_string_trace_formats():
 
 
 #Tests on lists
+#Following tests run on 15.11.26
+#All passed successfully on 15.11.26 @23.37
 def test_list_trace_formats():
     ast = Parser(Lexer("[11, \"13\"]").tokenize()).parse_program()
     trace = run_stepped(ast, {})

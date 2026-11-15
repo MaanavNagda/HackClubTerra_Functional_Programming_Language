@@ -1,4 +1,4 @@
-#41/41 tests passed successfully
+#48/48 tests passed successfully
 #Full test suite reran on 15.11.26 @10.43, all passed successfully
 
 
@@ -217,6 +217,8 @@ def test_machine_string_let():
 
 
 #List tests
+#Following tests run on 15.11.26 
+#All successfully run on 15.11.26 @23.37
 def test_machine_list_literal():
     source = "[11, 13]"
     assert run_machine(source)[0] == run(source)[0]
