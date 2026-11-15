@@ -14,6 +14,8 @@ class Lexer:
         self.line = 1
         self.col = 1
         self.tokens = []
+        #This is for how deep we are inside (). Newlines only become tokens at depth 0, so mult-line expressions inside brackets keep working
+        self.paren_depth = 0
 
     #Looks at the current character, without consuming (the none signals the end of the input)
     def peek(self):
@@ -50,7 +52,15 @@ class Lexer:
             #getting rid of whitespace first (note that newlines are included as a type of whitespace, and so will be removed as well in this step)
             #Also skips any comments, by finding the comment marker ";;" and consuming every subsequent character until a new line is reached
             while True:
-                if self.peek() is not None and self.peek().isspace():
+                #Updated - first checking if there is a new line token, before isspace, so we can use the newline separator. Only then does it delete the whitespace.
+                #a new line only becomes a token outside (), if it is inside a parens, then it is a plain whitespace, so multline functions don't break
+                if self.peek() == "\n":
+                    nl_line = self.line
+                    nl_col = self.col
+                    self.advance()
+                    if self.paren_depth == 0:
+                        self.emit(TokenType.NEWLINE, "\n", nl_line, nl_col)
+                elif self.peek() is not None and self.peek().isspace():
                     self.advance()
                 elif self.peek() == ";" and self.peek_next() == ";":
                     while self.peek() is not None and self.peek() != "\n":
@@ -79,6 +89,10 @@ class Lexer:
                 self.read_identifier(start_line, start_col)
             elif char in SINGLE_CHAR_TOKENS:
                 self.emit(SINGLE_CHAR_TOKENS[char], char, start_line, start_col)
+                if char == "(":
+                    self.paren_depth += 1
+                if char == ")" and self.paren_depth > 0:
+                    self.paren_depth -= 1
                 self.advance()
             else:
                 raise Exception(f"Unexpected character '{char}' at line {start_line}, column {start_col}")

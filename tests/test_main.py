@@ -23,8 +23,11 @@ def last_line(text):
 
 
 #Main program tests
-#Follownng test ran on 9.11.26
+#Following test ran on 9.11.26
 #All failed on 9.11.26 @2.29am
+#Following tests reran on 15.11.26
+#Fixed new line error that was causing previous failure
+#ALl passed on 15.11.26 @10.19
 def test_file_mode_default_engine():
     #no --engine flag,  as using the naive evaluator; numbers_test.tau prints every |> print, so the program result is the LAST line of stdout (which is 7)
     r = run_cli(["examples/numbers_test.tau"])
@@ -44,6 +47,9 @@ def test_engine_naive_explicit():
     assert r.returncode == 0 
     assert last_line(r.stdout) == "7"
 
+#Following test reran on 15.11.26
+#Fixed new line error causing previous error
+#Test failed again on 15.11.26 @10.19
 def test_step_prints_state_blocks():
     #every state renders as control:/env:/lont: lines, blcoks separated by blank lines
     r = run_cli(["--step", "examples/numbers_test.tau"])

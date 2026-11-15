@@ -21,6 +21,9 @@ class Parser:
     def parse_program(self):
         statements = []
         while self.peek().type !=  TokenType.EOF: #This happens until the input is exhausted
+            if self.peek().type == TokenType.NEWLINE:
+                self.advance()
+                continue #This is to skip statement separators, so runs of blanklines all get skipped
             if self.peek().type == TokenType.LET:
                 statements.append(self.parse_let())
             #fn has two meanings - either fn followed by a name, then LPAREN, which is a named definition, or fn followed straight by the LPAREN, which is a Lambda expression, so we look the token ahead to decide which it is
@@ -64,6 +67,9 @@ class Parser:
     def parse_body(self):
         body = []
         while self.peek().type != TokenType.RBRACE:
+            if self.peek().type == TokenType.NEWLINE:
+                self.advance()
+                continue
             if self.peek().type == TokenType.LET:
                 body.append(self.parse_let())
             elif self.peek().type == TokenType.FN and self.peek_at(1).type == TokenType.IDENT:

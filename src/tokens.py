@@ -40,6 +40,8 @@ class TokenType(Enum):
 
     EOF = auto() #This is the end of input marker, and it is the parser's stop signal, telling it that there is no more input left to parse
 
+    NEWLINE = auto() #statement separator - emitted once per source line, outside ()
+
     FN = auto() #the fn keyword which starts both named defs of functions, and lambdas
     LBRACE = auto() #the { that opens a function body
     RBRACE = auto() #the } that closes a function body
