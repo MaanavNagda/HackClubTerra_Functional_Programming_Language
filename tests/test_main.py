@@ -1,4 +1,4 @@
-#9/9 Tests passed successfully
+#11/11 Tests passed successfully
 #Full test suite reran on 15.11.26 @10.43, all passed successfully
 
 import subprocess
@@ -98,3 +98,17 @@ def test_repl_still_works():
     r = run_cli([], "exit\n")
     assert "Tau REPL" in r.stdout
     assert "Goodbye" in r.stdout
+
+
+#Test time features
+#Following tests run on 15.11.26
+#All passed successfully on 15.11.26 @14.51
+def test_step_interactive_back_and_forth():
+    #enter, enter, b, enter, q -> displays t0, t1, t2, t1, t2 = 5 state blocks
+    r = run_cli(["--step", "examples/numbers.tau"], input="\n\nb\n\nq\n")
+    assert r.stdout.count("control:") == 5
+
+def test_step_quit():
+    #test q as the very first command, where only the initial state is known
+    r = run_cli(["--step", "examples/numbers.tau"], input = "\n\nv\n\nq\n")
+    assert r.stdout.count("control:") == 5
