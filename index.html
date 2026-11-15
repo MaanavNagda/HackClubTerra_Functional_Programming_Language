@@ -27,6 +27,7 @@
         <!--This temporarily disables the run button, until the runtime pacakge has finished downloading (which shouldn't be too long as it is only like 10 megs). This is necessary as otherwise users WILL click run too early-->
         <button id="run" disabled>Run</button>
         <button id = "step" disabled>Step</button>
+        <button id = "back" disabled>Back</button>
         <button id="importBtn">Import</button>
         <button id="exportBtn">Export</button>
         <!-- file picker - import accepts .txt and .tau files, valid tau files will run, but even if the txt file has valid tau syntax, there is no guarentee it will run -->
@@ -113,6 +114,29 @@
             print(len(Lexer("let x = 5").tokenize()))`);
             console.log(pyodide.runPython("1+1")); //expect 2
             
+            //builds (or rebuilds) the full state trace for the current editor text
+            //trace[0] is the starting state, trace[-1] is halt - plain strings, JSON-sage across Pyodide
+            async function buildTrace() {
+                pyodide.globals.set("user_source", editor.getValue());
+                const raw = await pyodide.runPythonAsync(`
+                    def _steps(src):
+                        try:
+                            import json
+                            from src.lexer import Lexer
+                            from src.parser import Parser
+                            from src.machine import run_stepped, format_state
+                            ast = Parser(Lexer(src).tokenize()).parse_program()
+                            return json.dumps([format_state(s) for s in run_stepped(ast, {})])
+                        except Exception as e:
+                            return json.dumps([str(e)])
+                _steps(user_source)
+                `);
+                trace = JSON.parse(raw)
+                stepSrc = editor.getValue();
+                pos = 0;
+            }
+
+
             //only enables run when everything is mounted and verified
             document.getElementById("run").disabled = false;
             document.getElementById("step").disabled = false;
@@ -122,6 +146,7 @@
                 trace = null;
                 pos = 0;
                 stepSrc = null;
+                document.getElementId("back").disabled = true;
                 document.getElementById("step").disabled = false;
                 try {
                     //push the editor's text into Python's global namespace
@@ -147,39 +172,42 @@
             });
             document.getElementById("step").addEventListener("click", async () => {
                 try {
-                    //first step (or the code changed since), so we built the whole trace up front
-                    //states are plane strings, so JSON is the safe way across the Pyodide boundary
-                    if (trace === null || editor.getValue() !== stepSrc) {
-                        pyodide.globals.set("user_source", editor.getValue());
-                        const raw = await pyodide.runPythonAsync(`
-                            def _steps(src):
-                                try:
-                                    import json
-                                    from src.lexer import Lexer
-                                    from src.parser import Parser
-                                    from src.machine import run_stepped, format_state
-                                    ast = Parser(Lexer(src).tokenize()).parse_program()
-                                    return json.dumps([format_state(s) for s in run_stepped(ast, {})])
-                                except Exception as e:
-                                    return json.dumps([str(e)])
-                            _steps(user_source)
-                        `);
-                        trace = JSON.parse(raw);
-                        stepSrc = editor.getValue();
-                        pos = 0
+                    //first step (or the code changed since), so we build the whole trace up front
+                    if (trace == null || editor.getValue() !== stepSrc) {
+                        await buildTrace();
                     }
                     if (pos < trace.length) {
-                        document.getElementById("output").textContent= trace[pos];
-                        pos += 1
+                        document.getElementById("output").textContent = trace[pos];
+                        pos += 1;
                     }
                     //halt state is the last element, so reaching the end means done, and disabled till the next run
                     if (pos >= trace.length) {
                         document.getElementById("step").disabled = true;
-                    } 
+                    }
+                    //back is only possible once we are past the first state
+                    document.getElementById("back").disabled = pos <=1;
                 } catch (err) {
-                    console.log("step handler error:", err.message);
+                    console.log("step handler error:", err.message)
                 }
             })
-        </script>
+            //back walks the same trace backwards - pos counts the next state to show, so the state on the screen is trace[pos-1]; dropping by one re-shows the state before it
+            document.getElementById("back").addEventListener("click", async () => {
+                try {
+                    if (trace === null || editor.getValue() !== stepSrc) {
+                        await buildTrace();
+                    }
+                    if (pos > 1) {
+                        pos -= 1;
+                        document.getElementById("output").textContent = trace[pos - 1];
+                        //we aer no longer at the end, so step works again - this also gives redo for free
+                        document.getElementById("step").disabled = false;
+                    }
+                    document.getElementById("back").disabled = pos <=1;
+                } catch (err) {
+                    console.log("back handler error:", err.message);
+                }
+            })
+       
+       </script>
     </body>
 </html>
