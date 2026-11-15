@@ -8,7 +8,7 @@ from .rpn import eval_rpn, is_arith
 #a control is finished when it holds a real value. 
 #This can be a number, a boolean, None, Builtin, or a closure. Bool is checked before int, as in python every bool is also an int
 def is_value(x):
-    return isinstance(x, bool) or isinstance(x, int) or x is None or isinstance(x, closure) or isinstance(x, Builtin)
+    return isinstance(x, bool) or isinstance(x, int) or isinstance(x, float) or x is None or isinstance(x, closure) or isinstance(x, Builtin)
 
 #waiting for the right operand, then the operator can be applied
 @dataclass(frozen=True)

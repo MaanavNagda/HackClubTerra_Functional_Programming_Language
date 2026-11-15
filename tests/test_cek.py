@@ -155,6 +155,27 @@ def test_print_inside_functions():
 
 
 
+
+#Oracle testing the fixed float feature
+#Following tests run on 15.11.26
+#All successfully passed on 15.11.26 @16.52
+def test_machine_division_returns_float():
+    source = "14/13"
+    assert isinstance(run_machine(source)[0], float)
+    assert run_machine(source)[0] == run(source)[0]
+
+def test_machine_division_whole_result_is_float():
+    source = "13/13"
+    assert isinstance(run_machine(source)[0], float)
+    assert run_machine(source)[0] == run(source)[0]
+
+def test_machine_float_flows_through_let():
+    source = "let x = 13/13\nx*14"
+    assert isinstance(run_machine(source)[0], float)
+    assert run_machine(source)[0] == run(source)[0]
+    assert run_machine(source)[0] == 14.0
+
+
 #Step tests (run only through the machine)
 
 #Following tests ran on 2.11.26
