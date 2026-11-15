@@ -46,6 +46,9 @@ class TokenType(Enum):
     FN = auto() #the fn keyword which starts both named defs of functions, and lambdas
     LBRACE = auto() #the { that opens a function body
     RBRACE = auto() #the } that closes a function body
+    LBRACKET = auto() #The [ that opens a list 
+    RBRACKET = auto() #The ] that closes a list
+    COMMA = auto() #, Used as a separator, mainly in lists
     APPLY = auto() #The -> operator, which applies a function to an argument
     PIPE = auto() #the |> operator, which pipes a value into a function, and desugars to a Call (desugars is the method of translating convenient syntax into a more basic form that can be handled by existing implementation)
 
@@ -83,7 +86,10 @@ SINGLE_CHAR_TOKENS = {
     ">": TokenType.GT,
     "<": TokenType.LT,
     "{": TokenType.LBRACE,
-    "}": TokenType.RBRACE
+    "}": TokenType.RBRACE,
+    "[": TokenType.LBRACKET,
+    "]": TokenType.RBRACKET,
+    ",": TokenType.COMMA
 }
 
 #A dictionary of char pairs that are their own token type (mainly the comparison operators)

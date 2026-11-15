@@ -215,6 +215,44 @@ def test_machine_string_let():
     assert run_machine(source)[0] == run(source)[0]
     assert run_machine(source)[0] == "fourteenthirteen"
 
+
+#List tests
+def test_machine_list_literal():
+    source = "[11, 13]"
+    assert run_machine(source)[0] == run(source)[0]
+    assert run_machine(source)[0] == [11, 13]
+
+def test_machine_list_empty():
+    source = "[]"
+    assert run_machine(source)[0] == run(source)[0]
+    assert run_machine(source)[0] ==  []
+
+def test_machine_heterogeneous():
+    source = "[14, \"thirteen\", true]"
+    assert run_machine(source)[0] == run(source)[0]
+    assert run_machine(source)[0] == [14, "thirteen", True]
+
+def test_machine_nested():
+    source = "[[11], [13], [14]]"
+    assert run_machine(source)[0] == run(source)[0]
+    assert run_machine(source)[0] == [[11], [13], [14]]
+
+def test_machine_nested_mixed():
+    source = "[11, [13], [14], 12]"
+    assert run_machine(source)[0] == run(source)[0]
+    assert run_machine(source)[0] == [11, [13], [14], 12]
+
+def test_machine_list_env_elements():
+    source = "let x = 14\n[x, x*13]"
+    assert run_machine(source)[0] == run(source)[0]
+    assert run_machine(source)[0] == [14, 182]
+
+def test_machine_let():
+    source = "let xs = [11, 13]\nxs"
+    assert run_machine(source)[0] == run(source)[0]
+    assert run_machine(source)[0] == [11,13]
+
+
 #Step tests (run only through the machine)
 
 #Following tests ran on 2.11.26

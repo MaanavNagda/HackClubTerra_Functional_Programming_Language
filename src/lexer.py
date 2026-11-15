@@ -91,9 +91,9 @@ class Lexer:
                 self.read_string(start_line, start_col)
             elif char in SINGLE_CHAR_TOKENS:
                 self.emit(SINGLE_CHAR_TOKENS[char], char, start_line, start_col)
-                if char == "(":
+                if char == "(" or char == "[":
                     self.paren_depth += 1
-                if char == ")" and self.paren_depth > 0:
+                if (char == ")" or char == "]") and self.paren_depth > 0:
                     self.paren_depth -= 1
                 self.advance()
             else:

@@ -6,7 +6,7 @@ from src.lexer import Lexer
 from src.parser import Parser
 from src.evaluator import run_program
 from src.tokens import TokenType
-from src.ast_nodes import If, Let, Bool, FnDef, Call, Var, BinOp, Number, Lambda, Str
+from src.ast_nodes import If, Let, Bool, FnDef, Call, Var, BinOp, Number, Lambda, Str, List
 import pytest
 #Helper function
 def run(source):
@@ -185,6 +185,28 @@ def test_string_in_let():
 def test_string_unterminated():
     with pytest.raises(Exception):
         Lexer("\"thirteen").tokenize()
+
+
+#Lexer tests of lists
+def test_list_empty_tokens():
+    tokens = Lexer("[]").tokenize()
+    types = [t.type for t in tokens]
+    assert types == [TokenType.LBRACKET, TokenType.RBRACKET, TokenType.EOF]
+
+def test_list_tokens():
+    tokens = Lexer("[11,13]").tokenize()
+    types = [t.type for t in tokens]
+    assert types == [TokenType.LBRACKET, TokenType.NUMBER, TokenType.COMMA, TokenType.NUMBER, TokenType.RBRACKET, TokenType.EOF]
+
+def test_list_multiline():
+    tokens = Lexer("[14,\n13]").tokenize()
+    types = [t.type for t in tokens]
+    assert types == [TokenType.LBRACKET, TokenType.NUMBER, TokenType.COMMA, TokenType.NUMBER, TokenType.RBRACKET, TokenType.EOF] #crucially, no TokenType.NEWLINE, as there is NOT supposed to be any newlines inside brackets during parsing
+
+def test_list_multi_type():
+    tokens = Lexer("[14, \" thirteen\", false]").tokenize()
+    types = [t.type for t in tokens]
+    assert types == [TokenType.LBRACKET, TokenType.NUMBER, TokenType.COMMA, TokenType.STRING, TokenType.COMMA, TokenType.FALSE, TokenType.RBRACKET, TokenType.EOF]
 
 
 
@@ -390,6 +412,35 @@ def test_string_node():
     root = ast[0]
     assert isinstance(root, Str)
     assert root.value == "eleven"
+
+
+#Parser tests on lists
+def test_list_node():
+    ast = Parser(Lexer("[11,14]").tokenize()).parse_program()
+    root = ast[0]
+    assert isinstance(root, List)
+    assert [e.value for e in root.elements] == [11,14]
+
+def test_list_empty_node():
+    ast = Parser(Lexer("[]").tokenize()).parse_program()
+    root = ast[0]
+    assert isinstance(root, List)
+    assert root.elements == []
+
+def test_list_heterogeneous():
+    ast = Parser(Lexer("[13, \"fourteen\", true]").tokenize()).parse_program()
+    root = ast[0]
+    assert isinstance(root, List)
+    assert [e.value for e in root.elements] == [13, "fourteen", True]
+
+def test_list_missing_comma():
+    with pytest.raises(Exception):
+        Parser(Lexer("[11 14]").tokenize()).parse_program()
+
+def test_list_trailing_comma(): #At the moment this is treated as an error, later will be tolerated
+    with pytest.raises(Exception):
+        Parser(Lexer("[13,]").tokenize()).parse_program()
+
 
 
 #Tests on positions
@@ -740,3 +791,35 @@ def test_string_as_call_arg():
     assert result == "thirteenfourteen"
 
 
+#Evaluator tests on lists
+def test_list_eval():
+    result, env = run_program(Parser(Lexer("[13,14]").tokenize()).parse_program(), {})
+    assert result == [13,14]
+
+def test_list_heterogenous_eval():
+    result, env= run_program(Parser(Lexer("[14, \"thirteen\", true]").tokenize()).parse_program(), {})
+    assert result == [14, "thirteen", True]
+
+def test_list_nested_eval():
+    result, env = run_program(Parser(Lexer("[[11], [13], [14]]").tokenize()).parse_program(), {})
+    assert result == [[11], [13], [14]]
+
+def test_list_computed_elements():
+    result, env = run_program(Parser(Lexer("[12 + 16, 13 * 11]").tokenize()).parse_program(), {})
+    assert result == [28, 143]
+
+def test_list_env():
+    result, env = run_program(Parser(Lexer("let x = 14\n[x,x+13]").tokenize()).parse_program(), {})
+    assert result == [14,27]
+
+def test_list_list_concat():
+    result, env = run_program(Parser(Lexer("[11] + [14]").tokenize()).parse_program(), {})
+    assert result == [11,14]
+
+def test_list_eq_true():
+    result, env = run_program(Parser(Lexer("[11, 14] == [11, 14]").tokenize()).parse_program(), {})
+    assert result == True
+
+def test_list_eq_false():
+    result, env = run_program(Parser(Lexer("[11, 13] == [11, 14]").tokenize()).parse_program(), {})
+    assert result == False

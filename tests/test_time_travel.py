@@ -70,3 +70,15 @@ def test_string_trace_formats():
     assert "result:" in format_state(trace[-1])
     assert "\"fourteenthirteen\"" in format_state(trace[-1])
     assert any("\"fourteen\"" in format_state(x) for x in trace) and any("\"thirteen\"" in format_state(x) for x in trace)
+
+
+#Tests on lists
+def test_list_trace_formats():
+    ast = Parser(Lexer("[11, \"13\"]").tokenize()).parse_program()
+    trace = run_stepped(ast, {})
+    for s in trace:
+        out = format_state(s)
+        assert "control:" in out and "env:" in out and "kont:" in out 
+    assert "result:" in format_state(trace[-1])
+    assert any("ListKont" in format_state(x) for x in trace)
+    assert "[11, \"13\"]" in format_state(trace[-1])

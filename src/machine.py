@@ -1,4 +1,4 @@
-from .ast_nodes import Number, Var, BinOp, Let, If, Bool, FnDef, Call, Lambda, Str
+from .ast_nodes import Number, Var, BinOp, Let, If, Bool, FnDef, Call, Lambda, Str, List
 from .evaluator import closure, Builtin, call_builtin, apply_op, BUILTINS #The CEK machine reuses the naive evaluator's builtin impelementatin so that both engines agree
 from dataclasses import dataclass
 from .rpn import eval_rpn, is_arith 
@@ -8,7 +8,7 @@ from .rpn import eval_rpn, is_arith
 #a control is finished when it holds a real value. 
 #This can be a number, a boolean, None, Builtin, or a closure. Bool is checked before int, as in python every bool is also an int
 def is_value(x):
-    return isinstance(x, bool) or isinstance(x, int) or isinstance(x, float) or isinstance(x, str) or x is None or isinstance(x, closure) or isinstance(x, Builtin)
+    return isinstance(x, bool) or isinstance(x, int) or isinstance(x, float) or isinstance(x, str) or isinstance(x, list) or x is None or isinstance(x, closure) or isinstance(x, Builtin)
 
 #waiting for the right operand, then the operator can be applied
 @dataclass(frozen=True)
@@ -59,6 +59,12 @@ class Discard:
     restStmts: list
     savedEnv:object
 
+
+@dataclass(frozen=True)
+class ListKont:
+    restExprs:list
+    accValues:object
+    savedEnv:object
  
 
 #one small reduction. two kinds of step: an expression descends into a subexpression and pushes a frame, or a finished value pops the top frame which decides what happens next
@@ -69,6 +75,10 @@ def step(control, env, kont):
         return (control.value, env, kont)
     if isinstance(control, Str):
         return (control.value, env, kont)
+    if isinstance(control, List):
+        if not control.elements:
+            return([], env, kont)
+        return (control.elements[0], env, [ListKont(control.elements[1:], [], env)] + kont)
     if isinstance(control, Var):
         if control.name in env:
             return(env[control.name], env, kont)
@@ -142,7 +152,11 @@ def step(control, env, kont):
             return (Body(frame.restStmts), env2, kont)
         if isinstance(frame, Discard):
             return (Body(frame.restStmts), frame.savedEnv, kont)
-
+        if isinstance(frame, ListKont):
+            acc = frame.accValues + [v]
+            if frame.restExprs:
+                return (frame.restExprs[0], frame.savedEnv, [ListKont(frame.restExprs[1:], acc, frame.savedEnv)] + kont)
+            return (acc, env, kont)
 
 #the driver
 #starts with the whole program as a Body and steps until halt
@@ -178,6 +192,8 @@ def fmt_val(v):
             return "false"
     if isinstance(v, str):
         return '"' + v + '"'
+    if isinstance(v, list):
+        return "[" + ", ".join(fmt_val(element)for element in v) + "]"
     if isinstance(v, int):
         return str(v)
     if v is None:
@@ -201,6 +217,8 @@ def fmt_node(n):
             return "false"
     if isinstance(n, Str):
         return '"' + n.value + '"'
+    if isinstance(n, List):
+        return "[" + ", ".join(fmt_node(element) for element in n.elements) + "]"
     if isinstance(n, Var):
         return n.name
     if isinstance(n, BinOp):
@@ -253,6 +271,8 @@ def fmt_frame(f):
     if isinstance(f, Discard):
         #Updated the len in Discard as well so that is also wrapped in a string, so that python doesn't throw a type error again
         return "Discard(" + str(len(f.restStmts)) + " left)"
+    if isinstance(f, ListKont):
+        return "ListKont(" + str(len(f.restExprs)) + " left)"
     return str(f)
 
 def format_state(state):

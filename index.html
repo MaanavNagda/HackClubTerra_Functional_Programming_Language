@@ -59,6 +59,7 @@
                         if (stream.match(/^(->|\|>|==|!=|<=|>=)/)) return "operator";
                         //single character operators, and punctuation
                         if (stream.match(/^[+\-*\/%=(){}|<>!]/)) return "operator";
+                        if (stream.match(/^[+\-*\/%=(){}|<>!\[\],]/)) return "operator"
                         //identifiers stay unstyled
                         if (stream.match(/^[a-zA-Z_]\w*/)) return null;
                         stream.next();

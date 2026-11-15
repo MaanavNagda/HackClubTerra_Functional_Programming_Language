@@ -1,5 +1,5 @@
 from .tokens import Token, TokenType, KEYWORDS, SINGLE_CHAR_TOKENS
-from .ast_nodes import Let, BinOp, Number, Var, If, Bool, FnDef, Call, Lambda, Str
+from .ast_nodes import Let, BinOp, Number, Var, If, Bool, FnDef, Call, Lambda, Str, List
 #The input is the tokens list, and the output is the AST nodes
 # Expression precendence is built into the function layering, and this helps it follow BODMAS
 #The deeper functions bind together more, and this is what allows things like * to be completed before +
@@ -134,6 +134,25 @@ class Parser:
             left = BinOp(op_tok.value, left, right, op_tok.line, op_tok.col)
         return left
 
+
+    #parses lists. It parses element expressions that are separated by commas until ] is reached
+    def parse_list(self, start_line, start_col):
+        elements = []
+        if self.peek().type == TokenType.RBRACKET:
+            self.advance()
+            return List(elements, start_line, start_col)
+        while True:
+            elements.append(self.parse_expression())
+            if self.peek().type == TokenType.COMMA:
+                self.advance()
+            elif self.peek().type == TokenType.RBRACKET:
+                self.advance()
+                return List(elements, start_line, start_col)
+            else:
+                raise Exception(f"expected , or ] in list")
+                
+    
+
     #these are the things that cannot be split even further (like brackets, as they are at the top of BODMAS)
     #It runs inside the multiplication function, which in turn runs inside the addition function, which means that this one gets evaluated first
     def parse_primary(self):
@@ -152,6 +171,8 @@ class Parser:
             e = self.parse_expression()
             self.expect(TokenType.RPAREN)
             return e
+        if tok.type == TokenType.LBRACKET:
+            return self.parse_list(tok.line, tok.col)
         #fn in the expression position is an anonymous lambda, and so is a primary like numbers/vars
         #This is what lets lambdas aappear inside the RHS of a let statement, call args, and pipelines.
         if tok.type == TokenType.FN:
