@@ -1,4 +1,4 @@
-#5/5 tests passed successfully
+#6/6 tests passed successfully
 
 
 from src.lexer import Lexer
@@ -56,3 +56,17 @@ def test_format_state_never_crashes():
         out = format_state(s)  #this must not raise
         assert "control:" in out and "env:" in out and "kont:" in out
     assert "result:" in format_state(trace[-1])
+
+
+#Test on strings
+#Following tests run on 15.11.26
+#All passed successfully on 15.11.26 @20.12
+def test_string_trace_formats():
+    ast = Parser(Lexer("\"fourteen\" + \"thirteen\"").tokenize()).parse_program()
+    trace = run_stepped(ast, {})
+    for s in trace:
+        out= format_state(s)
+        assert "control:" in out and "env:" in out and "kont:" in out
+    assert "result:" in format_state(trace[-1])
+    assert "\"fourteenthirteen\"" in format_state(trace[-1])
+    assert any("\"fourteen\"" in format_state(x) for x in trace) and any("\"thirteen\"" in format_state(x) for x in trace)

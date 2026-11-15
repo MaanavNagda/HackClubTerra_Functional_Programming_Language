@@ -1,4 +1,4 @@
-#102/102 tests successfuly
+#111/115 tests successfuly
 #Full test suite reran on 15.11.26 @10.43, 98 passed successfully, 4 (test_let_sequence, test_line_commit, test_comment_only_line, test_token_positions) failed, tests need updating because of the newline fix.
 #Full test suite reran on 15.11.26 @11.02, all passed successfully
 
@@ -6,7 +6,7 @@ from src.lexer import Lexer
 from src.parser import Parser
 from src.evaluator import run_program
 from src.tokens import TokenType
-from src.ast_nodes import If, Let, Bool, FnDef, Call, Var, BinOp, Number, Lambda
+from src.ast_nodes import If, Let, Bool, FnDef, Call, Var, BinOp, Number, Lambda, Str
 import pytest
 #Helper function
 def run(source):
@@ -158,7 +158,33 @@ def test_pipe_vs_apply():
     assert types == [TokenType.IDENT, TokenType.PIPE, TokenType.IDENT, TokenType.APPLY, TokenType.NUMBER, TokenType.EOF]
 
 
+#Lexer tests on Strings
+#Following tests run on 15.11.26 
+#All tests failed on 15.11.26 @20.14
+#Fixed error with the test suites themselves
+#All tests rerun on 15.11.26
+#All passed successfully on 15.11.26 @20.20
+def test_string_token():
+    tokens = Lexer("\"hello\"").tokenize()
+    types = [t.type for t in tokens]
+    assert types == [TokenType.STRING, TokenType.EOF]
+    assert tokens[0].value == "hello"
 
+def test_string_escape():
+    tokens = Lexer("\"a\\\"b\"").tokenize()
+    types = [t.type for t in tokens]
+    assert tokens[0].value == "a\"b"
+    assert types == [TokenType.STRING, TokenType.EOF]
+
+def test_string_in_let():
+    tokens = Lexer("let x = \"fourteen\"").tokenize()
+    types = [t.type for t in tokens]
+    assert types == [TokenType.LET, TokenType.IDENT, TokenType.EQUALS, TokenType.STRING, TokenType.EOF]
+    
+
+def test_string_unterminated():
+    with pytest.raises(Exception):
+        Lexer("\"thirteen").tokenize()
 
 
 
@@ -356,7 +382,14 @@ def double_negation():
     assert isinstance(root, BinOp)
     assert isinstance(root.right, BinOp)
 
-
+#Parser tests on strings
+#Following tests run on 15.11.26 
+#All passed successfully on 15.11.26 @20.14
+def test_string_node():
+    ast = Parser(Lexer("\"eleven\"").tokenize()).parse_program()
+    root = ast[0]
+    assert isinstance(root, Str)
+    assert root.value == "eleven"
 
 
 #Tests on positions
@@ -668,5 +701,42 @@ def test_nested_parens():
 def test_shadowing():
     result, env = run("let x = 4\n let x = x + 1 \nx")
     assert result == 5
+
+
+
+#Evaluator tests on strings
+#Following tests run on 15.11.26
+#All passed successfully on 15.11.26 @20.14
+def test_string_eval():
+    result, env = run_program(Parser(Lexer("\"fourteen\"").tokenize()).parse_program(), {})
+    assert result == "fourteen"
+
+def test_string_string_concat():
+    result, env = run_program(Parser(Lexer("\"fourteen\" + \"thirteen\"").tokenize()).parse_program(), {})
+    assert result == "fourteenthirteen"
+
+def test_string_number_concat():
+    result, env = run_program(Parser(Lexer("\"fourteen\" + 13").tokenize()).parse_program(), {})
+    assert result == "fourteen13"
+
+def test_number_string_concat():
+    result, env = run_program(Parser(Lexer("14 + \"thirteen\"").tokenize()).parse_program(), {})
+    assert result == "14thirteen"
+
+def test_number_number_addition_still_works():
+    result, env = run_program(Parser(Lexer("14 + 14").tokenize()).parse_program(), {})
+    assert result == 28
+
+def test_number_number_string_concat():
+    result, env = run_program(Parser(Lexer("\"14\" + \"13\"").tokenize()).parse_program(), {})
+    assert result == "1413"
+
+def test_string_let():
+    result, env = run_program(Parser(Lexer("let s= \"fourteen\"\n s + \"thirteen\"").tokenize()).parse_program(), {})
+    assert result == "fourteenthirteen"
+
+def test_string_as_call_arg():
+    result, env = run_program(Parser(Lexer("fn shout(s){s + \"fourteen\"}\n shout -> \"thirteen\"").tokenize()).parse_program(), {})
+    assert result == "thirteenfourteen"
 
 

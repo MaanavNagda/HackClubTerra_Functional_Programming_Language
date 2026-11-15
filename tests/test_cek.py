@@ -1,4 +1,4 @@
-#31/31 tests passed successfully
+#41/41 tests passed successfully
 #Full test suite reran on 15.11.26 @10.43, all passed successfully
 
 
@@ -175,6 +175,45 @@ def test_machine_float_flows_through_let():
     assert run_machine(source)[0] == run(source)[0]
     assert run_machine(source)[0] == 14.0
 
+
+
+#String tests
+#Following tests run on 15.11.26
+#All passed successfully on 15.11.26 @20.11
+def test_machine_string_literal():
+    source = "\"fourteen\""
+    assert run_machine(source)[0] == run(source)[0]
+    assert run_machine(source)[0] == "fourteen"
+
+def test_machine_string_string_concat():
+    source = "\"fourteen\" + \"thirteen\""
+    assert run_machine(source)[0] == run(source)[0]
+    assert run_machine(source)[0] == "fourteenthirteen"
+
+def test_machine_string_number_concat():
+    source = "\"fourteen\" + 13"
+    assert run_machine(source)[0] == run(source)[0]
+    assert run_machine(source)[0] == "fourteen13"
+
+def test_machine_number_string_concat():
+    source = "14 +\"thirteen\""
+    assert run_machine(source)[0] == run(source)[0]
+    assert run_machine(source)[0] == "14thirteen"
+
+def test_number_number_concat():
+    source = "\"14\" + \"13\""
+    assert run_machine(source)[0] == run(source)[0]
+    assert run_machine(source)[0] == "1413"
+
+def test_number_number_addition():
+    source = "14 + 13"
+    assert run_machine(source)[0] == run(source)[0]
+    assert run_machine(source)[0] == 27
+
+def test_machine_string_let():
+    source = "let s = \"fourteen\"\n s+ \"thirteen\""
+    assert run_machine(source)[0] == run(source)[0]
+    assert run_machine(source)[0] == "fourteenthirteen"
 
 #Step tests (run only through the machine)
 
