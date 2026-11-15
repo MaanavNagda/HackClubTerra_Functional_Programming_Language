@@ -57,6 +57,13 @@ class Bool:
     col: int
 
 
+@dataclass(frozen = True)
+class Str:
+    value: str
+    line:int
+    col: int
+
+
 #A named function definition. It binds the name to the function in the env.
 #It is a statement (and not an expression) as it updates the env (similar to let)
 #Body is a list of statements, and the last one in that list is what is returned when the function is called

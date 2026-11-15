@@ -9,6 +9,7 @@ class TokenType(Enum):
     #literals and names
     NUMBER = auto()  #For example "13" or "14"
     IDENT = auto()  #For example "x"or "banana" or "comet" 
+    STRING = auto() #For example "Foxy" or "<14 :$ :&"
 
     #keywords (add as functionality is written)
     LET = auto()

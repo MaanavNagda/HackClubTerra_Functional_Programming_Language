@@ -14,6 +14,7 @@
         .cm-s-default .cm-number {color:#b45309;}
         .cm-s-default .cm-comment {color:#ff9bf0; font-style:italic}
         .cm-s-default .cm-operator {color:#000f89;}
+        .cm-s-default .cm-string {color: #003D2E;}
     </style>
     </head>
     <body>
@@ -49,6 +50,7 @@
                            return "comment";
                         }
                         if (stream.eatSpace()) return null;
+                        if (stream.match(/^"([^"\\]|\\.)*"/)) return "string";
                         //Numbers
                         if (stream.match(/^\d+(\.\d+)?/)) return "number";
                         //keywords - elseif is tried before else so it isnt split off

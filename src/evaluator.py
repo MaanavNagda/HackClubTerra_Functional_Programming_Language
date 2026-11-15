@@ -1,4 +1,4 @@
-from .ast_nodes import Number, Var, BinOp, Let, If, Bool, FnDef, Call, Lambda
+from .ast_nodes import Number, Var, BinOp, Let, If, Bool, FnDef, Call, Lambda, Str
 #Walks the AST that the parser produced, and then computes the values
 
 
@@ -38,6 +38,8 @@ def apply_op(op, left, right):
             raise Exception(f"division by {right} error")
         return left/right
     if op == "+":
+        if isinstance(left, str) or isinstance(right, str):
+            return str(left) + str(right)
         return left + right
     if op == "-":
         return left - right
@@ -82,6 +84,8 @@ def evaluate(node, env):
         return node.value #literals evaluate to themselves
     if isinstance(node, Bool):
         return node.value #boolean literals also evaluate to themselves
+    if isinstance(node, Str):
+        return node.value 
     if isinstance(node, If):
         cond  = evaluate(node.cond,env) #evaluates the condition first
         if cond:
@@ -98,30 +102,9 @@ def evaluate(node, env):
     if isinstance(node, BinOp):
         left = evaluate(node.left, env) #evaluates both sides first
         right = evaluate(node.right, env) #then applies the operator
-        if node.op == "/":
-            if right == 0:  #This is to handle division by 0, which is the only illegal operation that can be done with the basic 4 operators. Therefore, it is simple to just handle it as a separate case
-                raise Exception(f"division  by 0 at line {node.line}") #If there is division by 0 occurring, then an error is raised (as it is an illegal operatio)
-            return left / right #If that illegal operation is not found, then the division is calculated
-        if node.op == "+": #If the operator was a + , then the addition is calculated instead (same for whether it is * or -)
-            return left + right
-        if node.op == "-":
-            return left - right
-        if node.op == "*": 
-            return left*right
-        #Comparisons, so evaluate to True/False
-        if node.op ==  "==":
-            return left == right
-        if node.op == "!=":
-            return left != right
-        if node.op == "<":
-            return left < right
-        if node.op == ">":
-            return left > right
-        if node.op == ">=":
-            return left >= right
-        if node.op == "<=":
-            return left <= right
-        raise Exception(f"unknown operator {node.op}")
+        return apply_op(node.op, left, right)
+
+
 
 #run_programs() handles the statements and env
 #It runs the list of statements, and then returns the result

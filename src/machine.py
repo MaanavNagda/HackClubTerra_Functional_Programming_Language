@@ -1,4 +1,4 @@
-from .ast_nodes import Number, Var, BinOp, Let, If, Bool, FnDef, Call, Lambda
+from .ast_nodes import Number, Var, BinOp, Let, If, Bool, FnDef, Call, Lambda, Str
 from .evaluator import closure, Builtin, call_builtin, apply_op, BUILTINS #The CEK machine reuses the naive evaluator's builtin impelementatin so that both engines agree
 from dataclasses import dataclass
 from .rpn import eval_rpn, is_arith 
@@ -8,7 +8,7 @@ from .rpn import eval_rpn, is_arith
 #a control is finished when it holds a real value. 
 #This can be a number, a boolean, None, Builtin, or a closure. Bool is checked before int, as in python every bool is also an int
 def is_value(x):
-    return isinstance(x, bool) or isinstance(x, int) or isinstance(x, float) or x is None or isinstance(x, closure) or isinstance(x, Builtin)
+    return isinstance(x, bool) or isinstance(x, int) or isinstance(x, float) or isinstance(x, str) or x is None or isinstance(x, closure) or isinstance(x, Builtin)
 
 #waiting for the right operand, then the operator can be applied
 @dataclass(frozen=True)
@@ -66,6 +66,8 @@ def step(control, env, kont):
     if isinstance(control, Number):
         return (control.value, env, kont)
     if isinstance(control, Bool):
+        return (control.value, env, kont)
+    if isinstance(control, Str):
         return (control.value, env, kont)
     if isinstance(control, Var):
         if control.name in env:
@@ -174,6 +176,8 @@ def fmt_val(v):
             return "true"
         else:
             return "false"
+    if isinstance(v, str):
+        return '"' + v + '"'
     if isinstance(v, int):
         return str(v)
     if v is None:
@@ -195,6 +199,8 @@ def fmt_node(n):
             return "true"
         else:
             return "false"
+    if isinstance(n, Str):
+        return '"' + n.value + '"'
     if isinstance(n, Var):
         return n.name
     if isinstance(n, BinOp):

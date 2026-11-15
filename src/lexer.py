@@ -87,6 +87,8 @@ class Lexer:
                 self.read_number(start_line, start_col)
             elif char.isalpha() or char == '_':
                 self.read_identifier(start_line, start_col)
+            elif char == '"':
+                self.read_string(start_line, start_col)
             elif char in SINGLE_CHAR_TOKENS:
                 self.emit(SINGLE_CHAR_TOKENS[char], char, start_line, start_col)
                 if char == "(":
@@ -114,4 +116,20 @@ class Lexer:
         while self.peek() is not None and (self.peek().isalnum() or self.peek() == '_'):
             word += self.advance()
         self.emit(KEYWORDS.get(word, TokenType.IDENT), word, start_line, start_col)
-    
+
+    def read_string(self, start_line, start_col):
+        self.advance() #consumes the opening quote
+        value = ""
+        while True:
+            c = self.peek()
+            if c is None or c == "\n": #strings are single line
+                raise Exception(f"unterminated string at line {start_line}, column {start_col}")
+            if c == "\\": #This is using \ as a string literal. This means that if you want to put a special character in a string, you can use \ before it without it breaking the system. If you want to type a \ character, you simply do \\, and it will result in the \ character being stored once
+                self.advance()
+                value = value + self.advance()
+            elif c == '"':
+                self.advance()
+                self.emit(TokenType.STRING, value, start_line, start_col)
+                return
+            else:
+                value = value + self.advance()
