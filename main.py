@@ -37,11 +37,33 @@ if filename:
         ast = Parser(Lexer(source).tokenize()).parse_program()
         #the machine runs it through the CEK step machine, everything else uses the original tree walk evaluator
         if stepping:
-            #step requires the machine, so the --engine flag is ignored
+            #step moode always uses the machine, so we can ignore the --engine flag
             trace = run_stepped(ast, {})
-            for state in trace:
-                print(format_state(state))
-                print("") #blank line in between states to help with readabliity
+            #i is the index of the state on the screen, and trace[-1] is always halt
+            i = 0
+            #Loop forever
+            while 14 >=13:
+                print(format_state(trace[i]))
+                print("")
+                try:
+                    cmd = input(f"[{i + 1}/{len(trace)}] enter = forward, b = back, q = quit >")
+                except EOFError:
+                    #no interactive stdin (pipes, tests) - dumpt the rest and stop, which keeps --step output identical to the old dump-everuythinh mode
+                    for s in trace[i+1:]:
+                        print(format_state(s))
+                        print("")
+                    break
+                except KeyboardInterrupt:
+                    break
+                if  cmd == "q":
+                    break
+                if cmd == "b":
+                    if i > 0:
+                        i -= 1
+                elif cmd == "":
+                    if i < len(trace) - 1:
+                        i += 1
+
         elif engine == "machine":
             result, env = run_program_machine(ast,{})
         else:
