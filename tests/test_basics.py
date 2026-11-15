@@ -1,4 +1,7 @@
 #102/102 tests successfuly
+#Full test suite reran on 15.11.26 @10.43, 98 passed successfully, 4 (test_let_sequence, test_line_commit, test_comment_only_line, test_token_positions) failed, tests need updating because of the newline fix.
+#Full test suite reran on 15.11.26 @11.02, all passed successfully
+
 from src.lexer import Lexer
 from src.parser import Parser
 from src.evaluator import run_program
@@ -13,14 +16,6 @@ def run(source):
 
 #Following tests run on 23.10.26
 #All passed successfully on 23.10.26 @20.10pm
-def test_let_sequence():
-    tokens = Lexer("let x = 5 + 3\nlet y = x * 2").tokenize()
-    types = [t.type for t in tokens]
-    assert types == [TokenType.LET, TokenType.IDENT, TokenType.EQUALS, TokenType.NUMBER, TokenType.PLUS, TokenType.NUMBER,
-                     TokenType.LET, TokenType.IDENT, TokenType.EQUALS, TokenType.IDENT, TokenType.STAR, TokenType.NUMBER, TokenType.EOF]
-    assert tokens[1].value == "x"
-    assert tokens[3].value == 5
-
 def test_keywork_boundary():
     tokens = Lexer("letter = 3").tokenize()
     assert tokens[0].type == TokenType.IDENT and tokens[0].value == "letter"
@@ -37,6 +32,22 @@ def test_empty_input():
 def test_illegal_character():
     with pytest.raises(Exception):
         Lexer("5 $").tokenize()
+
+#Following tests rerun on 15.11.26 
+#All tests failed on 15.11.26 @10.43
+#Fixed token error, as new token has been created, so assertion has to be updated
+#Following tests rerun (3) on 15.11.26
+#All tests failed on 15.11.26 @10.55
+#Fixed ordering on the assertion, which was throwing the error
+#Following tests rerun (4) on 15.11.26
+#All passed successfully on 15.11.26 @11.02
+def test_let_sequence():
+    tokens = Lexer("let x = 5 + 3\nlet y = x * 2").tokenize()
+    types = [t.type for t in tokens]
+    assert types == [TokenType.LET, TokenType.IDENT, TokenType.EQUALS, TokenType.NUMBER,  TokenType.PLUS, TokenType.NUMBER,TokenType.NEWLINE,
+                     TokenType.LET, TokenType.IDENT, TokenType.EQUALS, TokenType.IDENT, TokenType.STAR, TokenType.NUMBER, TokenType.EOF]
+    assert tokens[1].value == "x"
+    assert tokens[3].value == 5
 
 ##Lexer tests on two tokens
 #Following tests run on 26.10.26
@@ -77,15 +88,7 @@ def test_bool_literals():
 #Lexer tests on comments
 #Following tests run on 26.10.26
 #All passed successfully on 26.10.25 @02.39am
-def test_line_comment():
-    tokens = Lexer("let x = 13;;bind x\nx").tokenize()
-    types = [t.type for t in tokens]
-    assert types == [TokenType.LET, TokenType.IDENT, TokenType.EQUALS, TokenType.NUMBER, TokenType.IDENT, TokenType.EOF]
 
-def test_comment_only_line():
-    tokens = Lexer(";; nothing here \n5").tokenize()
-    types = [t.type for t in tokens]
-    assert types == [TokenType.NUMBER, TokenType.EOF]
 
 def test_comment_at_EOF():
     tokens = Lexer("5;; trailing").tokenize()
@@ -100,6 +103,23 @@ def test_only_comment():
     tokens = Lexer(";;Just a comment lol").tokenize()
     types = [t.type for t in tokens]
     assert types == [TokenType.EOF]
+
+
+#Following tests rerun on 15.11.26
+#All tests failed on 15.11.26 @10.43
+#Fixed missing token error, as a new token was created, so assertion needs to be updated
+#Following tests rerun (3) on 15.11.26
+#All passed successfully on 15.11.26 @10.55
+def test_comment_only_line():
+    tokens = Lexer(";; nothing here \n5").tokenize()
+    types = [t.type for t in tokens]
+    assert types == [TokenType.NEWLINE, TokenType.NUMBER, TokenType.EOF]
+
+def test_line_comment():
+    tokens = Lexer("let x = 13;;bind x\nx").tokenize()
+    types = [t.type for t in tokens]
+    assert types == [TokenType.LET, TokenType.IDENT, TokenType.EQUALS, TokenType.NUMBER, TokenType.NEWLINE, TokenType.IDENT, TokenType.EOF]
+
 
 #Lexer tests on functions
 #Following tests run on 1.11.26
@@ -343,9 +363,14 @@ def double_negation():
 
 #Following tests run on 23.10.26
 #All passed successfully on 23.10.26 @20.10pm
+#Following tests rerun on 15.11.26
+#All failed on 15.11.26 @10.43
+#Fixed token error (as new token was added to the list)
+#Following tests rerun (3) on 15.11.26
+#All passed successfully on 15.11.26 @10.55pm
 def test_token_positions():
     tokens = Lexer("let x = 5\nlet y =x ").tokenize()
-    assert (tokens[4].line, tokens[4].col) == (2,1)
+    assert (tokens[5].line, tokens[5].col) == (2,1)
 
                  
 #Tests on evalutor
@@ -631,7 +656,7 @@ def test_builtin_still_capable():
     assert result == 14
 
 
-
+ 
 #Tests on main (general stuff)
 #Test failed on 23.10.26 @21.30pm
 #Error fixed, test rerun, and test passed successfully on 23.10.26 @21.35pm

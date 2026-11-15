@@ -1,4 +1,6 @@
 #31/31 tests passed successfully
+#Full test suite reran on 15.11.26 @10.43, all passed successfully
+
 
 from src.lexer import Lexer
 from src.parser import Parser

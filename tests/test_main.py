@@ -1,4 +1,6 @@
-#
+#9/9 Tests passed successfully
+#Full test suite reran on 15.11.26 @10.43, all passed successfully
+
 import subprocess
 import sys
 import os
@@ -50,6 +52,9 @@ def test_engine_naive_explicit():
 #Following test reran on 15.11.26
 #Fixed new line error causing previous error
 #Test failed again on 15.11.26 @10.19
+#Following test reran (3) on 15.11.26
+#Fixed type error in Kont and Discard causing prveious error
+#Test passed successfully on 15.11.26 @10.40
 def test_step_prints_state_blocks():
     #every state renders as control:/env:/lont: lines, blcoks separated by blank lines
     r = run_cli(["--step", "examples/numbers_test.tau"])

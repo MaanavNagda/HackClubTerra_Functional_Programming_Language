@@ -242,9 +242,11 @@ def fmt_frame(f):
     if isinstance(f, ApplyKont):
         return "ApplyKont(" + fmt_val(f.funcValue) + ")"
     if isinstance(f, LetKont):
-        return "LetKont(" + f.name + ", " + len(f.restStmts) + " left)"
+        #updated the len to now be wrapped in a string, so that python doesn't throw a type error
+        return "LetKont(" + f.name + ", " + str(len(f.restStmts)) + " left)"
     if isinstance(f, Discard):
-        return "Discard(" + len(f.restStmts) + " left)"
+        #Updated the len in Discard as well so that is also wrapped in a string, so that python doesn't throw a type error again
+        return "Discard(" + str(len(f.restStmts)) + " left)"
     return str(f)
 
 def format_state(state):
