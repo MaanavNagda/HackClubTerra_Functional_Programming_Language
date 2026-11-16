@@ -37,6 +37,16 @@ def apply_op(op, left, right):
         if right == 0:
             raise Exception(f"division by {right} error")
         return left/right
+    if op == "++":
+        if isinstance(left, list):
+            l = left
+        else:
+            l = [left]
+        if isinstance(right, list):
+            r = right
+        else:
+            r = [right]
+        return l + r
     if op == "+":
         if isinstance(left, str) or isinstance(right, str):
             return str(left) + str(right)

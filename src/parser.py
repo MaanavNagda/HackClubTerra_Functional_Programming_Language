@@ -108,9 +108,18 @@ class Parser:
     #Comparison level, and looser than any arithmetic, as a comparison will naturally act as a divider between two sides
     #Tighter than if, and has the same left-folding shape as addition/multiplication
     def parse_comparison(self):
-        left = self.parse_additive()
+        left = self.parse_append()
         while self.peek().type in [TokenType.EQEQ, TokenType.NE, TokenType.LT, TokenType.GT, TokenType.LTE, TokenType.GTE]:
             op_tok = self.advance()
+            right = self.parse_append()
+            left = BinOp(op_tok.value, left, right, op_tok.line, op_tok.col)
+        return left
+
+    #List append feature
+    def parse_append(self):
+        left = self.parse_additive()
+        while self.peek().type == TokenType.APPEND:
+            op_tok= self.advance()
             right = self.parse_additive()
             left = BinOp(op_tok.value, left, right, op_tok.line, op_tok.col)
         return left

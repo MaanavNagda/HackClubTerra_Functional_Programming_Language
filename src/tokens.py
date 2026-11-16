@@ -51,6 +51,8 @@ class TokenType(Enum):
     COMMA = auto() #, Used as a separator, mainly in lists
     APPLY = auto() #The -> operator, which applies a function to an argument
     PIPE = auto() #the |> operator, which pipes a value into a function, and desugars to a Call (desugars is the method of translating convenient syntax into a more basic form that can be handled by existing implementation)
+    APPEND = auto() #The ++ operator, which concatenates lists
+
 
 #A token is its category, its payload, and where it was in the source.
 #A value is either an integer (for numbers), or a name (for identifiers). Simple operators just carry their character itself.
@@ -101,5 +103,6 @@ TWO_CHAR_TOKENS = {
     "<=": TokenType.LTE,
     ">=": TokenType.GTE,
     "->": TokenType.APPLY, #function application operator
-    "|>": TokenType.PIPE #Pipeline operator
+    "|>": TokenType.PIPE, #Pipeline operator
+    "++": TokenType.APPEND #Appending list operator
 }

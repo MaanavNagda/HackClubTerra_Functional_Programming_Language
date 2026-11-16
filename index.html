@@ -56,7 +56,7 @@
                         //keywords - elseif is tried before else so it isnt split off
                         if (stream.match(/^(elseif|let|if|then|else|fn|true|false)\b/)) return "keyword";
                         //two character operators, MUST be matched before signle character ones, so they aren't split up
-                        if (stream.match(/^(->|\|>|==|!=|<=|>=)/)) return "operator";
+                        if (stream.match(/^(->|\|>|==|!=|<=|>=|\+\+)/)) return "operator";
                         //single character operators, and punctuation
                         if (stream.match(/^[+\-*\/%=(){}|<>!]/)) return "operator";
                         if (stream.match(/^[+\-*\/%=(){}|<>!\[\],]/)) return "operator"

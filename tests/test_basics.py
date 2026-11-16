@@ -211,6 +211,22 @@ def test_list_multi_type():
     assert types == [TokenType.LBRACKET, TokenType.NUMBER, TokenType.COMMA, TokenType.STRING, TokenType.COMMA, TokenType.FALSE, TokenType.RBRACKET, TokenType.EOF]
 
 
+#Lexer tests on appending
+#Following tests run on 16.11.26
+#All passed successfully on 16.11.26 @01.58 
+def test_append_token():
+    tokens = Lexer("[11] ++ [13]").tokenize()
+    types = [t.type for t in tokens]
+    assert types == [TokenType.LBRACKET, TokenType.NUMBER, TokenType.RBRACKET, TokenType.APPEND, TokenType.LBRACKET, TokenType.NUMBER, TokenType.RBRACKET, TokenType.EOF]
+    
+
+def test_append_token_compact():
+    tokens = Lexer("13 ++ 14").tokenize()
+    types = [t.type for t in tokens]
+    assert types == [TokenType.NUMBER, TokenType.APPEND, TokenType.NUMBER, TokenType.EOF]
+
+
+
 
 #Tests on the Parser
 
@@ -445,6 +461,30 @@ def test_list_trailing_comma(): #At the moment this is treated as an error, late
     with pytest.raises(Exception):
         Parser(Lexer("[13,]").tokenize()).parse_program()
 
+
+#Parser Tests on append
+#Following tests run on 16.11.26
+#All passed successfully on 16.11.26 @01.58
+def test_append_node():
+    ast = Parser(Lexer("[13] ++ [14]").tokenize()).parse_program()
+    root = ast[0]
+    assert isinstance(root, BinOp)
+    assert isinstance(root.left, List)
+    assert isinstance(root.right, List)
+    assert root.op == "++"
+
+def test_append_precendence_node():
+    ast = Parser(Lexer("[11] ++ 12 + 13").tokenize()).parse_program()
+    root = ast[0]
+    assert isinstance(root, BinOp)
+    assert root.op == "++"
+    assert isinstance(root.right, BinOp)
+
+def test_append_left_assoc():
+    ast = Parser(Lexer("11 ++ 13 ++ 14").tokenize()).parse_program()
+    root = ast[0]
+    assert isinstance(root, BinOp)
+    assert isinstance(root.left, BinOp)
 
 
 #Tests on positions
@@ -829,3 +869,45 @@ def test_list_eq_true():
 def test_list_eq_false():
     result, env = run_program(Parser(Lexer("[11, 13] == [11, 14]").tokenize()).parse_program(), {})
     assert result == False
+
+
+#Evaluator tests on appending to lists
+def test_append_lists():
+    result, env= run_program(Parser(Lexer("[11,13] ++ [14]").tokenize()).parse_program(), {})
+    assert result == [11,13,14]
+
+def test_append_number_right():
+    result, env = run_program(Parser(Lexer("[11] ++ 13").tokenize()).parse_program(), {})
+    assert result == [11, 13]
+
+def test_apend_number_left():
+    result, env = run_program(Parser(Lexer("13 ++ [14]").tokenize()).parse_program(), {})
+    assert result == [13,14]
+
+def test_append_numbers():
+    result, env= run_program(Parser(Lexer("13++14").tokenize()).parse_program(), {})
+    assert result ==[13,14]
+
+def test_append_new_list():
+    result, env = run_program(Parser(Lexer("13++[]").tokenize()).parse_program(), {})
+    assert result == [13]
+
+def test_append_mixed_list_to_list():
+    result, env = run_program(Parser(Lexer("13 ++[11] ++ \"14\" ++ true").tokenize()).parse_program(), {})
+    assert result == [13, 11, "14", True]
+
+def test_append_mixed_list():
+    result, env= run_program(Parser(Lexer("13++11++\"14\" ++ true").tokenize()).parse_program(), {})
+    assert result ==[13, 11, "14", True]
+
+def test_append_precedence():
+    result, env = run_program(Parser(Lexer("13 ++ 11 + 14").tokenize()).parse_program(), {})
+    assert result == [13,25]
+
+def test_apend_strings():
+    result, env = run_program(Parser(Lexer("\"13\"++\"14\"").tokenize()).parse_program(), {})
+    assert result == ["13", "14"]
+
+def test_append_let():
+    result, env  = run_program(Parser(Lexer("let xs = [11] \n xs ++ [13]").tokenize()).parse_program(), {})
+    assert result == [11, 13]

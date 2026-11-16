@@ -1,4 +1,4 @@
-#48/48 tests passed successfully
+#50/50 tests passed successfully
 #Full test suite reran on 15.11.26 @10.43, all passed successfully
 
 
@@ -254,6 +254,25 @@ def test_machine_let():
     assert run_machine(source)[0] == run(source)[0]
     assert run_machine(source)[0] == [11,13]
 
+
+
+#Appending tests
+#Following tests run on 16.11.26 
+#All passed successfully on 16.11.26 @01.58
+def test_machine_append_list():
+    source = "[11] ++ [13]"
+    assert run_machine(source)[0] == run(source)[0]
+    assert run_machine(source)[0] == [11,13]
+
+def test_machine_append_mixed():
+    source = "13 ++ \"14\" ++ true ++ [11]"
+    assert run_machine(source)[0] == run(source)[0]
+    assert run_machine(source)[0] == [13,"14", True, 11]
+
+def test_machine_precedence():
+    source = "[11] ++ 12 + 13"
+    assert run_machine(source)[0] == run(source)[0]
+    assert run_machine(source)[0] == [11, 25]
 
 #Step tests (run only through the machine)
 
