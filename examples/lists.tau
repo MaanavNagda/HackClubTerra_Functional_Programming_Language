@@ -1,0 +1,12 @@
+;;Tau demo - lists: literals, heterogeneity, nesting, and ++ appending
+
+;;lists hold any mix of values
+[i, "a", true] |> print ;;outputs [1, "a", True]
+[] |> print ;;the empty list
+[[1, 2], [3,4]] |> print ;;nested lists also work
+
+;;elements are full expressions, and see let bindings
+let scores = [11,
+13,
+14]
+scores |>print ;; outputs [11, 13, 14]

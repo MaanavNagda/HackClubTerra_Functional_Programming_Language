@@ -1,0 +1,28 @@
+;;Tau demo - strings: literals, escapes, and + concatenation/coercion
+
+;;basic strings
+"fourteen" |> print ;; outputs fourteen
+"Tau" |> print ;; ouputs Tau
+
+;;backslash escapes the next character literally, so operators can be used as part of the string, rather than having an affect on the rest of the language
+"say \"eleven\"" |> print ;; outputs say "eleven" - the speech marks are now part of the string, even though ordinarily they would be used to signal the end of the string
+"C:\\path |> print ;; outputs C:\path - by using the double backslash, the first acts as the escape character, allowing the second one to be part of the string. The double backslash is how to write a single backslash inside a string
+"fourteen\\thirteen" |> print ;; outputs 14\13  - another instance of the double backslash escape
+
+
+;;The + operator can be used to concatenate (join) strings
+"thir" + "teen" |> print ;; this joins the two strings together, into "thirteen"
+
+
+;;The + operator can also be used for coercion between mixed types
+"thirteen" + 13 |> print;; This outputs thirteen13
+13 + "thirteen" |> print ;; This outputs 13thirteen
+"result:" 143/11 |> print;; The 143/11 is calculated first, giving an answer of 13.0 (which makes use of the float data type). The output is result:13.0
+
+
+;;strings flow through let and functions liek any other value:
+let number = "fourteen" + "thirteen"
+number |> print ;;This outputs fourteenthirteen
+
+fn number(name){"thirteen" + name + "!"}
+number -> "fourteen" |> print ;;outputs thirteen fourteen!
