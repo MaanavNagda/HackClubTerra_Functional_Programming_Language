@@ -1,5 +1,5 @@
 from .tokens import Token, TokenType, KEYWORDS, SINGLE_CHAR_TOKENS
-from .ast_nodes import Let, BinOp, Number, Var, If, Bool, FnDef, Call, Lambda, Str, List
+from .ast_nodes import Let, BinOp, Number, Var, If, Bool, FnDef, Call, Lambda, Str, List, Checkpoint, Rewind
 #The input is the tokens list, and the output is the AST nodes
 # Expression precendence is built into the function layering, and this helps it follow BODMAS
 #The deeper functions bind together more, and this is what allows things like * to be completed before +
@@ -26,6 +26,12 @@ class Parser:
                 continue #This is to skip statement separators, so runs of blanklines all get skipped
             if self.peek().type == TokenType.LET:
                 statements.append(self.parse_let())
+            elif self.peek().type == TokenType.CHECKPOINT:
+                tok = self.advance()
+                statements.append(Checkpoint(tok.line, tok.col))
+            elif self.peek().type == TokenType.REWIND:
+                tok = self.advance()
+                statements.append(Rewind(tok.line, tok.col))
             #fn has two meanings - either fn followed by a name, then LPAREN, which is a named definition, or fn followed straight by the LPAREN, which is a Lambda expression, so we look the token ahead to decide which it is
             elif self.peek().type == TokenType.FN:
                 if self.peek_at(1).type == TokenType.IDENT:
@@ -72,6 +78,12 @@ class Parser:
                 continue
             if self.peek().type == TokenType.LET:
                 body.append(self.parse_let())
+            elif self.peek().type == TokenType.CHECKPOINT:
+                tok = self.advance()
+                body.append(Checkpoint(tok.line, tok.col))
+            elif self.peek().type == TokenType.REWIND:
+                tok = self.advance()
+                body.append(Rewind(tok.line, tok.col))
             elif self.peek().type == TokenType.FN and self.peek_at(1).type == TokenType.IDENT:
                 body.append(self.parse_fndef())
             else:

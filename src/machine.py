@@ -1,4 +1,4 @@
-from .ast_nodes import Number, Var, BinOp, Let, If, Bool, FnDef, Call, Lambda, Str, List
+from .ast_nodes import Number, Var, BinOp, Let, If, Bool, FnDef, Call, Lambda, Str, List, Rewind, Checkpoint
 from .evaluator import closure, Builtin, call_builtin, apply_op, BUILTINS #The CEK machine reuses the naive evaluator's builtin impelementatin so that both engines agree
 from dataclasses import dataclass
 from .rpn import eval_rpn, is_arith 
@@ -65,7 +65,14 @@ class ListKont:
     restExprs:list
     accValues:object
     savedEnv:object
- 
+
+@dataclass(frozen=True)
+class CheckpointKont:
+    restStmts:list
+
+@dataclass(frozen=True)
+class RewindKont:
+    restStmts:list
 
 #one small reduction. two kinds of step: an expression descends into a subexpression and pushes a frame, or a finished value pops the top frame which decides what happens next
 def step(control, env, kont):
@@ -116,6 +123,10 @@ def step(control, env, kont):
             return (s, env, [Discard(rest, env)] + kont)
         else:
             return (s, env, kont)
+        if isinstance(s, Checkpoint):
+            return (None, env, [CheckpointKont(rest)] + kont)
+        if isinstance(s, Rewind):
+            return (None, env, [RewindKont(rest)] + kont)
     if is_value(control):
         v = control
         if not kont:
@@ -152,6 +163,18 @@ def step(control, env, kont):
             return (Body(frame.restStmts), env2, kont)
         if isinstance(frame, Discard):
             return (Body(frame.restStmts), frame.savedEnv, kont)
+        if isinstance(frame, CheckpointKont):
+            trail = env["<trail>"] or []
+            if len(trail) >= 100:
+                raise Exception(f"checkpoint limit reached")
+            env2 = {**env, "<trail>": trail + [env]}
+            return (Body(frame.restStmts), env2, kont)
+        if isinstance(frame, RewindKont):
+            trail = env["<trail>"] or []
+            if trail == []:
+                raise Exception(f"rewind with no checkpoint")
+            env2 = {**trail[-1], "<trail>": trail}
+            return (Body(frame.restStmts), env2, kont)
         if isinstance(frame, ListKont):
             acc = frame.accValues + [v]
             if frame.restExprs:
@@ -273,6 +296,10 @@ def fmt_frame(f):
         return "Discard(" + str(len(f.restStmts)) + " left)"
     if isinstance(f, ListKont):
         return "ListKont(" + str(len(f.restExprs)) + " left)"
+    if isinstance(f, CheckpointKont):
+        return "CheckpointKont(" + str(len(f.restStmts)) + " left)"
+    if isinstance(f, RewindKont):
+        return "RewindKont(" + str(len(f.restStmts)) + " left)"
     return str(f)
 
 def format_state(state):

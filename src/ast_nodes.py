@@ -69,6 +69,16 @@ class List:
     line:int
     col:int
 
+@dataclass(frozen=True)
+class Checkpoint:
+    line:int
+    col:int
+
+@dataclass(frozen=True)
+class Rewind:
+    line:int
+    col:int
+
 
 #A named function definition. It binds the name to the function in the env.
 #It is a statement (and not an expression) as it updates the env (similar to let)

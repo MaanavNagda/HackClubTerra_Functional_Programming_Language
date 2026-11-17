@@ -1,4 +1,4 @@
-from .ast_nodes import Number, Var, BinOp, Let, If, Bool, FnDef, Call, Lambda, Str, List
+from .ast_nodes import Number, Var, BinOp, Let, If, Bool, FnDef, Call, Lambda, Str, List, Checkpoint, Rewind
 #Walks the AST that the parser produced, and then computes the values
 
 
@@ -141,6 +141,25 @@ def run_program(statements, env):
             newEnv[statement.name] =  newClosure
             env = newEnv
             result = newClosure
+        elif isinstance(statement, Checkpoint):
+            try:
+                trail = env["<trail>"]
+            except:
+                trail = []
+            if len(trail) >= 100:
+                raise Exception(f"checkpoint limit reached")
+            env = {**env, "<trail>":trail + [env]}
+            result  = None
+        elif isinstance(statement, Rewind):
+            try:
+                trail = env["<trail>"]
+            except:
+                trail = []
+            if trail == []:
+                raise Exception(f"reqind with no checkpoint")
+            env = {**trail[-1], "<trail>": trail}
+            result = None
+            
         else:
             result = evaluate(statement, env) #This is a plain expression, so its just its value
     return result, env #the env is returned, so that the REPL has "memory", and can keep previous bindings in its "memory"

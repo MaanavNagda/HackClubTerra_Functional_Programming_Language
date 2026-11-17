@@ -19,6 +19,8 @@ class TokenType(Enum):
     THEN = auto()
     TRUE = auto()
     FALSE = auto()
+    CHECKPOINT = auto()
+    REWIND = auto()
 
     #operators
     PLUS = auto() #+
@@ -73,7 +75,9 @@ KEYWORDS = {"let": TokenType.LET,
             "true": TokenType.TRUE,
             "false": TokenType.FALSE,
             "else": TokenType.ELSE,
-            "fn": TokenType.FN
+            "fn": TokenType.FN,
+            "checkpoint": TokenType.CHECKPOINT,
+            "rewind": TokenType.REWIND
             }
 
 #A dictionary of single chars that are their own token type (mainly the different mathematical operators and symbols)
