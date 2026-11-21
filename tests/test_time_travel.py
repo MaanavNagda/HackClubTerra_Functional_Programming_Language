@@ -1,4 +1,4 @@
-#7/7 tests passed successfully
+#10/10 tests passed successfully
 
 
 from src.lexer import Lexer
@@ -103,6 +103,12 @@ def test_rewind_frame_formats():
 
 #Following tests run on 21.11.26
 #All tests failed on 21.11.26 @00.05
+#Fixed broken if chain ordering in step in the src/machine
+#Following tests rerun on 21.11.26
+#All tests failed on 21.11.26 @00.11
+#Fioxed trail lookup KeyError by switching to a try excpet block in src/machine
+#Following tests rerun on 21.11.26
+#All passed successfully on 21.11.26 @00.19
 def test_checkpoint_rewind_trace_formats():
     ast = Parser(Lexer("let  x = 11\n checkpoint\n let x = 13 \nrewind\n").tokenize()).parse_program()
     trace = run_stepped(ast, {})

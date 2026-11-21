@@ -299,6 +299,12 @@ def test_machine_checkkpoint_limit():
 
 #Following tests run on 21.11.26
 #All tests failed on 21.11.26 @00.05
+#Fixed broken if chain ordering in step in the src/machine
+#Following tests rerun on 21.11.26 
+#All tests failed on 21.11.26 @00.11
+#Fixed trail lookup KeyError by switching to a try except block in the src/machine
+#Following tests rerun on 21.11.26
+#All passed successfully on 21.11.26 @00.19
 def test_machine_checkpoint_preserves_bindings():
     source = "let x = 11\n checkpoint\nlet y = x * 13\n y"
     assert run_machine(source)[0] == run(source)[0]

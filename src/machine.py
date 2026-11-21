@@ -119,14 +119,14 @@ def step(control, env, kont):
             env2[s.name] = C
             C.env = env2
             return (Body(rest), env2, kont)
-        if rest:
-            return (s, env, [Discard(rest, env)] + kont)
-        else:
-            return (s, env, kont)
         if isinstance(s, Checkpoint):
             return (None, env, [CheckpointKont(rest)] + kont)
         if isinstance(s, Rewind):
             return (None, env, [RewindKont(rest)] + kont)
+        if rest:
+            return (s, env, [Discard(rest, env)] + kont)
+        else:
+            return (s, env, kont)
     if is_value(control):
         v = control
         if not kont:
@@ -164,13 +164,19 @@ def step(control, env, kont):
         if isinstance(frame, Discard):
             return (Body(frame.restStmts), frame.savedEnv, kont)
         if isinstance(frame, CheckpointKont):
-            trail = env["<trail>"] or []
+            try:
+                trail = env["<trail>"]
+            except:
+                trail = []
             if len(trail) >= 100:
                 raise Exception(f"checkpoint limit reached")
             env2 = {**env, "<trail>": trail + [env]}
             return (Body(frame.restStmts), env2, kont)
         if isinstance(frame, RewindKont):
-            trail = env["<trail>"] or []
+            try:
+                trail = env["<trail>"]
+            except:
+                trail = []
             if trail == []:
                 raise Exception(f"rewind with no checkpoint")
             env2 = {**trail[-1], "<trail>": trail}

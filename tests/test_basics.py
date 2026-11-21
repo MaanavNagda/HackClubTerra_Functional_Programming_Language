@@ -1,4 +1,4 @@
-#147/147 tests successfuly
+#157/157 tests successfuly
 #Full test suite reran on 15.11.26 @10.43, 98 passed successfully, 4 (test_let_sequence, test_line_commit, test_comment_only_line, test_token_positions) failed, tests need updating because of the newline fix.
 #Full test suite reran on 15.11.26 @11.02, all passed successfully
 
