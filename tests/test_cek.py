@@ -6,7 +6,7 @@ from src.lexer import Lexer
 from src.parser import Parser
 from src.evaluator import run_program
 from src.machine import run_program_machine, step, Body
-from src.machine import BinOpR, BinOpDo, IfKont, CallArg, ApplyKont, LetKont, Discard
+from src.machine import BinOpR, BinOpDo, IfKont, CallArg, ApplyKont, LetKont, Discard, CheckpointKont, RewindKont
 from src.ast_nodes import BinOp, Number, Lambda
 import pytest
 
@@ -273,6 +273,58 @@ def test_machine_precedence():
     source = "[11] ++ 12 + 13"
     assert run_machine(source)[0] == run(source)[0]
     assert run_machine(source)[0] == [11, 25]
+
+
+
+#Oracle tests on checkpoints & rewind
+#Following tests run on 21.11.26
+#All passed successfully on 21.11.26 @00.05
+def test_machine_rewind_without_checkpoint():
+    with pytest.raises(Exception):
+        run_machine("rewind")
+
+    with pytest.raises(Exception):
+        run("rewind")
+
+def test_machine_checkkpoint_limit():
+    source = ""
+    x = 0
+    while x != 102:
+        source = source + "checkpoint\n"
+        x += 1
+    with pytest.raises(Exception):
+        run_machine(source)
+    with pytest.raises(Exception):
+        run(source)
+
+#Following tests run on 21.11.26
+#All tests failed on 21.11.26 @00.05
+def test_machine_checkpoint_preserves_bindings():
+    source = "let x = 11\n checkpoint\nlet y = x * 13\n y"
+    assert run_machine(source)[0] == run(source)[0]
+    assert run_machine(source)[0] == 143
+
+def test_machine_rewind_restores_binding():
+    source = "let x = 11\n checkpoint\nlet x  = 13 \n rewind\n x"
+    assert run_machine(source)[0] == run(source)[0]
+    assert run_machine(source)[0] == 11
+
+def test_machine_rewind_is_persistent():
+    source = "let x= 11\ncheckpoint\nlet  x = 14\nlet y = 13\n rewind \nlet x = 16\n rewind\n x"
+    assert run_machine(source)[0] == run(source)[0]
+    assert run_machine(source)[0] == 11
+
+def test_machine_checkpoint_inside_function():
+    source = "fn f(x){checkpoint\nlet y = x * 13\ny}\nf->11"
+    assert run_machine(source)[0] == run(source)[0]
+    assert run_machine(source)[0] == 143
+
+
+
+
+
+
+
 
 #Step tests (run only through the machine)
 

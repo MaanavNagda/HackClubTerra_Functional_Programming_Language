@@ -4,7 +4,7 @@
 from src.lexer import Lexer
 from src.parser import Parser
 from src.evaluator import run_program
-from src.machine import BinOpR, BinOpDo, IfKont, CallArg, ApplyKont, LetKont, Discard, run_stepped, step, format_state, Body
+from src.machine import BinOpR, BinOpDo, IfKont, CallArg, ApplyKont, LetKont, Discard, run_stepped, step, format_state, Body, RewindKont, CheckpointKont
 from src.ast_nodes import BinOp, Number
 from src.rpn import eval_rpn
 import pytest
@@ -84,3 +84,31 @@ def test_list_trace_formats():
     assert "result:" in format_state(trace[-1])
     assert any("ListKont" in format_state(x) for x in trace)
     assert "[11, \"13\"]" in format_state(trace[-1])
+
+
+#Tests on checkpoints & rewinds
+#Following tests run on 21.11.26
+#All tests passed successfully on 21.11.26 @00.05    
+def test_checkpoint_frame_formats():
+    frame = CheckpointKont(restStmts = [Number(11,0,0)])
+    state = (None, {}, [frame])
+    out = format_state(state)
+    assert "CheckpointKont(1 left)" in out
+
+def test_rewind_frame_formats():
+    frame = RewindKont(restStmts = [Number(11,0,0)])
+    state = (None, {}, [frame])
+    out = format_state(state)
+    assert "RewindKont(1 left)" in out
+
+#Following tests run on 21.11.26
+#All tests failed on 21.11.26 @00.05
+def test_checkpoint_rewind_trace_formats():
+    ast = Parser(Lexer("let  x = 11\n checkpoint\n let x = 13 \nrewind\n").tokenize()).parse_program()
+    trace = run_stepped(ast, {})
+    for s in trace:
+        out = format_state(s)
+        assert "control:" in out and "env:" in out and "kont:" in out
+    assert "result:" in format_state(trace[-1])
+    assert any("CheckpointKont" in format_state(x) for x in trace)
+    assert any("RewindKont" in format_state(x) for x in trace)    

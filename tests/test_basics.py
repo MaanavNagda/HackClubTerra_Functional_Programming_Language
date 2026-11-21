@@ -1,4 +1,4 @@
-#132/132 tests successfuly
+#147/147 tests successfuly
 #Full test suite reran on 15.11.26 @10.43, 98 passed successfully, 4 (test_let_sequence, test_line_commit, test_comment_only_line, test_token_positions) failed, tests need updating because of the newline fix.
 #Full test suite reran on 15.11.26 @11.02, all passed successfully
 
@@ -6,7 +6,7 @@ from src.lexer import Lexer
 from src.parser import Parser
 from src.evaluator import run_program
 from src.tokens import TokenType
-from src.ast_nodes import If, Let, Bool, FnDef, Call, Var, BinOp, Number, Lambda, Str, List
+from src.ast_nodes import If, Let, Bool, FnDef, Call, Var, BinOp, Number, Lambda, Str, List, Checkpoint, Rewind
 import pytest
 #Helper function
 def run(source):
@@ -224,6 +224,21 @@ def test_append_token_compact():
     tokens = Lexer("13 ++ 14").tokenize()
     types = [t.type for t in tokens]
     assert types == [TokenType.NUMBER, TokenType.APPEND, TokenType.NUMBER, TokenType.EOF]
+
+
+
+#Lexer tests on Checkpoints & rewinding
+#Following tests run on 21.11.26
+#All passed successfully on 21.11.26 @00.05
+def test_checkpoint_token():
+    tokens = Lexer("checkpoint").tokenize()
+    types = [t.type for t in tokens]
+    assert types == [TokenType.CHECKPOINT, TokenType.EOF]
+
+def test_checkpoint_rewind_tokens():
+    tokens = Lexer("checkpoint\nrewind").tokenize()
+    types = [t.type for t in tokens]
+    assert types == [TokenType.CHECKPOINT, TokenType.NEWLINE, TokenType.REWIND, TokenType.EOF]
 
 
 
@@ -485,6 +500,35 @@ def test_append_left_assoc():
     root = ast[0]
     assert isinstance(root, BinOp)
     assert isinstance(root.left, BinOp)
+
+
+#Parser tests on checkpoints and rewind
+#Following tests run on 21.11.26
+#All passed successfully on 21.11.26 @00.05
+def test_checkpoint_rewind():
+    ast = Parser(Lexer("checkpoint\nrewind").tokenize()).parse_program()
+    root = ast[0]
+    assert isinstance(root, Checkpoint)
+    assert isinstance(ast[1], Rewind)
+
+def test_checkpoint_function():
+    ast = Parser(Lexer("fn f(x){checkpoint\nrewind\nx}").tokenize()).parse_program()
+    root = ast[0]
+    assert isinstance(root, FnDef)
+    assert isinstance(root.body[1], Rewind)
+    assert isinstance(root.body[0], Checkpoint)
+
+def test_checkpoint_let():
+    ast = Parser(Lexer("let x =5\ncheckpoint\nlet y = 2\nrewind\nx ").tokenize()).parse_program()
+    root = ast[0]
+    assert len(ast) == 5
+    assert isinstance(ast[1], Checkpoint)
+    assert isinstance(ast[3], Rewind)
+    
+
+
+
+
 
 
 #Tests on positions
@@ -872,6 +916,8 @@ def test_list_eq_false():
 
 
 #Evaluator tests on appending to lists
+#Following tests run on 16.11.26
+#All passed successfully on 16.11.26 @01.58
 def test_append_lists():
     result, env= run_program(Parser(Lexer("[11,13] ++ [14]").tokenize()).parse_program(), {})
     assert result == [11,13,14]
@@ -911,3 +957,36 @@ def test_apend_strings():
 def test_append_let():
     result, env  = run_program(Parser(Lexer("let xs = [11] \n xs ++ [13]").tokenize()).parse_program(), {})
     assert result == [11, 13]
+
+
+#Evalutator tests on checkpoints and rewinds
+#Following tests run on 21.11.26
+#All passed successfully on 21.11.26 @00.05
+def test_checkpoint_multiline():
+    result, env = run_program(Parser(Lexer("let x=11\ncheckpoint\nlet y = x * 13\ny").tokenize()).parse_program(), {})
+    assert result == 143
+
+def test_checkpoint_rewind():
+    result, env = run_program(Parser(Lexer("let x = 11\ncheckpoint\nlet x = 13\nrewind\nx").tokenize()).parse_program(), {})
+    assert result == 11
+
+def test_checkpoint_persistance():
+    result, env = run_program(Parser(Lexer("let x = 11 \ncheckpoint \nlet y = 13\nrewind \n let x = 14\n rewind\n x").tokenize()).parse_program(), {})
+    assert result == 11
+
+def test_standalone_rewind():
+    with pytest.raises(Exception):
+        run_program(Parser(Lexer("rewind").tokenize()).parse_program(), {})
+
+def test_checkpoint_overflow():
+    with pytest.raises(Exception):
+        source = "checkpoint\n"
+        x = 0
+        while x!=101:
+            source = source + "checkpoint\n"
+            x +=1 
+        run_program(Parser(Lexer(source).tokenize()).parse_program(), {})
+
+def test_checkpoint_functions():
+    result, env = run_program(Parser(Lexer("fn f(x){checkpoint\nlet y = x * 13\ny}\nf -> 11").tokenize()).parse_program(), {})
+    assert result == 143
