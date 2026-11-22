@@ -22,16 +22,52 @@ class Effect():
         self.name = name
         self.args = args
 
+class Partial():
+    #a builtin that has collected some but not all of its arguments
+    #Map produces a partial of map and the function, as the function still waits for the lsit
+    def __init__(self, name, args):
+        self.name = name
+        self.args = args
+
+    def step(self, arg):
+        newArgs = self.args + (arg, )
+        if len(newArgs) < BUILTIN_ARITY[self.name]:
+            return Partial(self.name, newArgs)
+        if self.name == "map":
+            fn = newArgs[0]
+            lst = newArgs[1]
+            if not isinstance(lst, list):
+                raise Exception(f"{self.name} needs a list")
+            result = []
+            for x in lst:
+                result.append(call_value(fn, x))
+            return result
+        elif self.name == "filter":
+            fn = newArgs[0]
+            lst = newArgs[1]
+            if not isinstance(lst, list):
+                raise Exception(f"{self.name} needs a list")
+            result = []
+            for x in lst:
+                if call_value(fn, x):
+                    result.append(x)
+            return result
     
 
-#This is the builtins taht every program starts with:
+BUILTIN_ARITY = {"map": 2,
+                 "filter": 2,}
+
+
+#This is the builtins that every program starts with:
 BUILTINS = {"print": Builtin("print"),
             "dispatch!": Builtin("dispatch!"),
             "reroute!": Builtin("reroute!"),
              "page!": Builtin("page!"),
              "write!": Builtin("write!"),
              "commit!": Builtin("commit!"),
-             "<dot>": Builtin("<dot>")
+             "<dot>": Builtin("<dot>"),
+             "map": Builtin("map"),
+             "filter": Builtin("filter")
             }
 
 #This runs the actual implementation of the builtin. It is shared with the machien so that both engines agree
@@ -53,8 +89,23 @@ def call_builtin(name, arg):
             return arg
         else:
             raise Exception("...")
+    if name in BUILTIN_ARITY:
+        return Partial(name, (arg,))
     else:
         raise Exception(f"unknown builtin {name}") #All builtins are defined above, and so if it doesn't match it, then an error is thrown
+
+
+def call_value(func, arg):
+    if isinstance(func, Builtin):
+        return call_builtin(func.name, arg)
+    if isinstance(func, Partial):
+        return func.step(arg)
+    if isinstance(func, closure):
+        callEnv = {**func.env}
+        callEnv[func.param] = arg
+        return run_program(func.body, callEnv)[0]
+    raise Exception(f"calling non-function")
+
 
 #Moved from machine.py to evaluator.py to fix the circular dependecy crash that would have otherwise occurred when machine.py tried to call rpn.py (as rpn.py is calling stuff from machine.py as well)
 #operator calculations
@@ -109,14 +160,7 @@ def evaluate(node, env):
     if isinstance(node, Call):
         func = evaluate(node.func, env)
         arg = evaluate(node.arg, env)
-        #A builtin call runs its implementation directly, so there is no closure body to enter
-        if isinstance(func, Builtin):
-            return call_builtin(func.name, arg)
-        if not isinstance(func, closure):
-            raise Exception(f"calling non-function")
-        callEnv = {**func.env}
-        callEnv[func.param] = arg
-        return run_program(func.body, callEnv)[0]
+        return call_value(func, arg)
     if isinstance(node, Number):
         return node.value #literals evaluate to themselves
     if isinstance(node, Bool):

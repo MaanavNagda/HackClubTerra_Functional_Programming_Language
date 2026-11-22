@@ -1,5 +1,5 @@
 from .ast_nodes import Number, Var, BinOp, Let, If, Bool, FnDef, Call, Lambda, Str, List, Rewind, Checkpoint
-from .evaluator import closure, Builtin, call_builtin, apply_op, BUILTINS, Effect #The CEK machine reuses the naive evaluator's builtin impelementatin so that both engines agree
+from .evaluator import closure, Builtin, call_builtin, apply_op, BUILTINS, Effect, Partial #The CEK machine reuses the naive evaluator's builtin impelementatin so that both engines agree
 from dataclasses import dataclass
 from .rpn import eval_rpn, is_arith 
 #CEK machine is the step evaluator. State = (control, env, kont).
@@ -8,7 +8,7 @@ from .rpn import eval_rpn, is_arith
 #a control is finished when it holds a real value. 
 #This can be a number, a boolean, None, Builtin, or a closure. Bool is checked before int, as in python every bool is also an int
 def is_value(x):
-    return isinstance(x, bool) or isinstance(x, int) or isinstance(x, float) or isinstance(x, str) or isinstance(x, list) or x is None or isinstance(x, closure) or isinstance(x, Builtin) or isinstance(x, Effect)
+    return isinstance(x, bool) or isinstance(x, int) or isinstance(x, float) or isinstance(x, str) or isinstance(x, list) or x is None or isinstance(x, closure) or isinstance(x, Builtin) or isinstance(x, Effect) or isinstance(x, Partial)
 
 #waiting for the right operand, then the operator can be applied
 @dataclass(frozen=True)
@@ -149,6 +149,8 @@ def step(control, env, kont):
             #A builtlin call runs its implementation directly - the argument v is already a value
             if isinstance(f, Builtin):
                 return (call_builtin(f.name, v), env, kont)
+            if isinstance(f, Partial):
+                return(f.step(v), env, kont)
             if not isinstance(f, closure):
                 raise Exception(f"calling non-function")
             callEnv = {**f.env}
@@ -225,6 +227,8 @@ def fmt_val(v):
         return "[" + ", ".join(fmt_val(element)for element in v) + "]"
     if isinstance(v, int):
         return str(v)
+    if isinstance(v, Partial):
+        return "partial:" + v.name +"/" + str(len(v.args))
     if v is None:
         return "none"
     if isinstance(v, Builtin):

@@ -11,7 +11,9 @@ RESERVED = {"print",
             "reroute!",
             "page!",
             "write!",
-            "commit!"
+            "commit!",
+            "map",
+            "filter"
             }
 
 
