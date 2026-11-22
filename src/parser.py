@@ -182,7 +182,7 @@ class Parser:
 
     #these are the things that cannot be split even further (like brackets, as they are at the top of BODMAS)
     #It runs inside the multiplication function, which in turn runs inside the addition function, which means that this one gets evaluated first
-    def parse_primary(self):
+    def parse_atom(self):
         tok = self.advance()
         if tok.type == TokenType.NUMBER:
             return Number(tok.value, tok.line, tok.col)
@@ -216,6 +216,18 @@ class Parser:
             operand = self.parse_primary()
             return BinOp("-", Number(0, tok.line, tok.col), operand,tok.line, tok.col)
         raise Exception(f"expected expression, got {tok} at line {tok.line}, col {tok.col}")
+
+    def parse_primary(self):
+        expr = self.parse_atom()
+        while self.peek().type == TokenType.DOT:
+            self.advance()
+            name_tok = self.expect(TokenType.IDENT)
+            expr = Call(
+                Var(name_tok.value, name_tok.line, name_tok.col),
+                expr,
+                name_tok.line, name_tok.col
+            )
+        return expr
 
 
     #handles the conditionals logic, and parses it in the correct order

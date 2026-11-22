@@ -54,7 +54,7 @@ class TokenType(Enum):
     APPLY = auto() #The -> operator, which applies a function to an argument
     PIPE = auto() #the |> operator, which pipes a value into a function, and desugars to a Call (desugars is the method of translating convenient syntax into a more basic form that can be handled by existing implementation)
     APPEND = auto() #The ++ operator, which concatenates lists
-
+    DOT = auto() #The . operator, has two functions. Firstly, if it is between two numbers, it signifies a float. For example, 14.0 or 13.11 would use the dot operator to be treated as floats. secondly, it can be used as a function.builtin, whcich signifies that the builtin is acting on the function. This can onyl be used with functions, not regular expressions (some builtins may ONLY work on functions, in which case the .builtin is their only form. Others that can also work with expressions will have the . syntax for functions, the -> syntax for expressions and the |> syntax for piping expressions)
 
 #A token is its category, its payload, and where it was in the source.
 #A value is either an integer (for numbers), or a name (for identifiers). Simple operators just carry their character itself.
@@ -95,7 +95,8 @@ SINGLE_CHAR_TOKENS = {
     "}": TokenType.RBRACE,
     "[": TokenType.LBRACKET,
     "]": TokenType.RBRACKET,
-    ",": TokenType.COMMA
+    ",": TokenType.COMMA,
+    ".": TokenType.DOT
 }
 
 #A dictionary of char pairs that are their own token type (mainly the comparison operators)

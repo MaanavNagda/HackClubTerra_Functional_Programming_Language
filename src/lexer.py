@@ -1,4 +1,4 @@
-from .tokens import Token, TokenType, KEYWORDS, SINGLE_CHAR_TOKENS, TWO_CHAR_TOKENS
+from .tokens import Token, TokenType, KEYWORDS, SINGLE_CHAR_TOKENS, TWO_CHAR_TOKENS, DOT
 #Turns raw source text into a list of tokens. This list of tokens is categorising the pieces of text into the types saved in /src/tokens.py
 #Parser consumes its output
 
@@ -107,8 +107,19 @@ class Lexer:
         digits = ""
         while self.peek() is not None and self.peek().isdigit():
             digits += self.advance()
-        self.emit(TokenType.NUMBER, int(digits), start_line, start_col)
 
+        if self.peek() == "." and self.peek_next() is not None and self.peek_next().isdigit():
+            digits += self.advance()
+            while self.peek() is not None and self.peek().isdigit():
+                digits += self.advance()
+            self.emit(TokenType.NUMBER, float(digits), start_line, start_col)
+        else:
+            self.emit(TokenType.NUMBER, int(digits), start_line, start_col)
+   
+   
+   
+   
+   
     #This is for letters and digits, and it is the whole word first, and only then checks for key words
     #This order is needed as that stops things like an input of "letter" lexing as the key word "let" and then "ter", when in reality, it is not a keyword at all, but a separate word (letter)
     def read_identifier(self, start_line, start_col):
