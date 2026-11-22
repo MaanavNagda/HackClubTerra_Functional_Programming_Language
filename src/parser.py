@@ -219,16 +219,19 @@ class Parser:
 
     def parse_primary(self):
         expr = self.parse_atom()
-        while self.peek().type == TokenType.DOT:
+        while self.peek().type ==TokenType.DOT:
             self.advance()
             name_tok = self.expect(TokenType.IDENT)
             expr = Call(
                 Var(name_tok.value, name_tok.line, name_tok.col),
-                expr,
+                Call(
+                    Var("<dot>", name_tok.line, name_tok.col),
+                    expr,
+                    name_tok.line, name_tok.col
+                ),
                 name_tok.line, name_tok.col
             )
         return expr
-
 
     #handles the conditionals logic, and parses it in the correct order
     #elseif is just nested if branches

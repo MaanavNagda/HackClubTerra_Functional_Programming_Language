@@ -30,7 +30,8 @@ BUILTINS = {"print": Builtin("print"),
             "reroute!": Builtin("reroute!"),
              "page!": Builtin("page!"),
              "write!": Builtin("write!"),
-             "commit!": Builtin("commit!")
+             "commit!": Builtin("commit!"),
+             "<dot>": Builtin("<dot>")
             }
 
 #This runs the actual implementation of the builtin. It is shared with the machien so that both engines agree
@@ -47,6 +48,11 @@ def call_builtin(name, arg):
         else:
             print(arg.name, arg.args)
         return arg
+    if name == "<dot>":
+        if isinstance(arg, closure) or isinstance(arg, Builtin) or isinstance(arg, list):
+            return arg
+        else:
+            raise Exception("...")
     else:
         raise Exception(f"unknown builtin {name}") #All builtins are defined above, and so if it doesn't match it, then an error is thrown
 
