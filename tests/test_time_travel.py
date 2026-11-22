@@ -118,3 +118,16 @@ def test_checkpoint_rewind_trace_formats():
     assert "result:" in format_state(trace[-1])
     assert any("CheckpointKont" in format_state(x) for x in trace)
     assert any("RewindKont" in format_state(x) for x in trace)    
+
+
+#Time travle tests on efect vocabulary
+#Following tests run on 22.11.26
+#All passed successfully on 22.11.26 @15.57
+def test_effect_trace_formats():
+    ast = Parser(Lexer("page!->\"team\"").tokenize()).parse_program()
+    trace = run_stepped(ast, {})
+    for s in trace:
+        out = format_state(s)
+        assert "control:" in out and "env:" in out and "kont:" in out
+    assert "result:" in format_state(trace[-1])
+    assert any("page!(\"team\")" in format_state(x) for x in trace)

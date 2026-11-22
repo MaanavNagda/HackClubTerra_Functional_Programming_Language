@@ -1,4 +1,4 @@
-#157/157 tests successfuly
+#169/169 tests successfuly
 #Full test suite reran on 15.11.26 @10.43, 98 passed successfully, 4 (test_let_sequence, test_line_commit, test_comment_only_line, test_token_positions) failed, tests need updating because of the newline fix.
 #Full test suite reran on 15.11.26 @11.02, all passed successfully
 
@@ -241,7 +241,20 @@ def test_checkpoint_rewind_tokens():
     assert types == [TokenType.CHECKPOINT, TokenType.NEWLINE, TokenType.REWIND, TokenType.EOF]
 
 
+#Lexer tests on effect vocabulary
+#Following tests run on 22.11.26
+#All passed successfully on 22.11.26 @15.57
+def test_effect_bang_indetifier():
+    tokens = Lexer("page!").tokenize()
+    types = [t.type for t in tokens]
+    assert types == [TokenType.IDENT, TokenType.EOF]
+    assert tokens[0].value == "page!"
 
+def test_effect_bang_not_equals():
+    tokens = Lexer("a != b").tokenize()
+    types = [t.type for t in tokens]
+    assert types == [TokenType.IDENT, TokenType.NE, TokenType.IDENT, TokenType.EOF]
+    
 
 #Tests on the Parser
 
@@ -526,8 +539,14 @@ def test_checkpoint_let():
     assert isinstance(ast[3], Rewind)
     
 
-
-
+#Parser tests on effect vocabulary
+#Following tests run on 22.11.26
+#All passed successfully on 22.11.26 @15.57
+def test_effect_call_parses():
+    ast = Parser(Lexer("page! -> \"team\"").tokenize()).parse_program()
+    root = ast[0]
+    assert isinstance(root, Call)
+    assert root.func.name == "page!"
 
 
 
@@ -990,3 +1009,52 @@ def test_checkpoint_overflow():
 def test_checkpoint_functions():
     result, env = run_program(Parser(Lexer("fn f(x){checkpoint\nlet y = x * 13\ny}\nf -> 11").tokenize()).parse_program(), {})
     assert result == 143
+
+
+#Evaluator tests on effect vocabulary
+#Following tests run on 22.11.26
+#All passed successfully on 22.11.26 @15.57
+def test_page_effect_returns_description():
+    result, env = run_program(Parser(Lexer("page! -> \"team-oncall\"").tokenize()).parse_program(), {})
+    assert result.name == "page!"
+    assert result.args == ("team-oncall",)
+
+def test_dispatch_builtin():
+    result, env = run_program(Parser(Lexer("dispatch! -> \"u7\"").tokenize()).parse_program(), {})
+    assert result.name == "dispatch!"
+
+def test_reroute_builtin():
+    result, env = run_program(Parser(Lexer("reroute!->\"u7\"").tokenize()).parse_program(), {})
+    assert result.name == "reroute!"
+
+def test_page_builtin():
+    result, env = run_program(Parser(Lexer("page!->\"u7\"").tokenize()).parse_program(), {})
+    assert result.name == "page!"
+
+def test_write_builtin():
+    result, env = run_program(Parser(Lexer("write!->\"u7\"").tokenize()).parse_program(), {})
+    assert result.name == "write!"
+
+def test_commit_single_effect():
+    result, env =  run_program(Parser(Lexer("commit! -> (page! -> \"team\")").tokenize()).parse_program(), {})
+    assert result.name == "page!"
+
+def test_effect_builtin_reserved():
+    with pytest.raises(Exception):
+        results, env= run_program(Parser(Lexer("let page! = 13").tokenize()).parse_program(), {})
+
+def test_effect_is_value():
+    result, env = run_program(Parser(Lexer("let fx = page! -> \"x\"").tokenize()).parse_program(), {})
+    assert result.name == "page!"
+
+
+
+#Following tests run on 22.11.26
+#All tests failed on 22.11.26 @15.57
+#Fixed issue with the test suite formatting
+#Following tests rerun on 22.11.26
+#All passed successfully on 22.11.26 @16.06
+def test_commit_effect_list():
+    result, env = run_program(Parser(Lexer("commit! -> [page! ->\"a\", dispatch! -> \"u7\"]").tokenize()).parse_program(), {})
+    assert result[0].name == "page!"
+    assert result[1].name == "dispatch!"

@@ -1,4 +1,4 @@
-#50/50 tests passed successfully
+#56/56 tests passed successfully
 #Full test suite reran on 15.11.26 @10.43, all passed successfully
 
 
@@ -324,6 +324,45 @@ def test_machine_checkpoint_inside_function():
     source = "fn f(x){checkpoint\nlet y = x * 13\ny}\nf->11"
     assert run_machine(source)[0] == run(source)[0]
     assert run_machine(source)[0] == 143
+
+
+
+#Oracle tests on effect vocabulary
+#Following tests run on 22.11.26
+#All passed successfully on 22.11.26 @15.57
+def test_machine_effect_dispatch():
+    source = "dispatch!->\"y7\""
+    assert run_machine(source)[0].name == run(source)[0].name
+    assert run_machine(source)[0].args == run(source)[0].args
+    assert run_machine(source)[0].name == "dispatch!"
+
+def test_machine_effect_reroute():
+    source = "reroute!->\"u7\""
+    assert run_machine(source)[0].name == run(source)[0].name
+    assert run_machine(source)[0].args == run(source)[0].args
+    assert run_machine(source)[0].name == "reroute!"
+
+def test_machine_effect_page():
+    source = "page!->\"u7\""
+    assert run_machine(source)[0].name == run(source)[0].name
+    assert run_machine(source)[0].args == run(source)[0].args
+    assert run_machine(source)[0].name == "page!"
+
+def test_machine_effect_write():
+    source = "write!->\"u7\""
+    assert run_machine(source)[0].name == run(source)[0].name
+    assert run_machine(source)[0].args == run(source)[0].args
+    assert run_machine(source)[0].name == "write!"
+
+def test_machine_commit_effect_single():
+    source = "commit! -> (page! -> \"team\")"
+    assert run_machine(source)[0].name == run(source)[0].name
+    assert run_machine(source)[0].args == run(source)[0].args
+
+def test_machine_commit_effect_list():
+    source = "commit! -> [page! -> \"a\",dispatch! -> \"u7\"]"
+    assert run_machine(source)[0][0].name== run(source)[0][0].name
+    assert run_machine(source)[0][1].name == run(source)[0][1].name
 
 
 
