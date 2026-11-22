@@ -1,4 +1,4 @@
-from .tokens import Token, TokenType, KEYWORDS, SINGLE_CHAR_TOKENS, TWO_CHAR_TOKENS, DOT
+from .tokens import Token, TokenType, KEYWORDS, SINGLE_CHAR_TOKENS, TWO_CHAR_TOKENS
 #Turns raw source text into a list of tokens. This list of tokens is categorising the pieces of text into the types saved in /src/tokens.py
 #Parser consumes its output
 

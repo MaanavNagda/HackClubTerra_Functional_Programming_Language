@@ -1,4 +1,4 @@
-#10/10 tests passed successfully
+#12/12 tests passed successfully
 
 
 from src.lexer import Lexer
@@ -120,7 +120,7 @@ def test_checkpoint_rewind_trace_formats():
     assert any("RewindKont" in format_state(x) for x in trace)    
 
 
-#Time travle tests on efect vocabulary
+#Time travel tests on efect vocabulary
 #Following tests run on 22.11.26
 #All passed successfully on 22.11.26 @15.57
 def test_effect_trace_formats():
@@ -131,3 +131,23 @@ def test_effect_trace_formats():
         assert "control:" in out and "env:" in out and "kont:" in out
     assert "result:" in format_state(trace[-1])
     assert any("page!(\"team\")" in format_state(x) for x in trace)
+
+
+
+#Time travel tests on dot
+#Following tests run on 22.11.26
+#All tests failed on 22.11.26 @21.22
+#Fixed last assertion
+#Following tests rerun on 22.11.26
+#All tests failed on 22.11.26 @21.27
+#Refixed last assertion
+#Following tests rerun(3) on 22.11.26
+#All passed successfully on 22.11.26 @21.30
+def test_dot_trace_formats():
+    ast = Parser(Lexer("[13,14].print").tokenize()).parse_program()
+    trace = run_stepped(ast, {})
+    for s in trace:
+        out = format_state(s)
+        assert "control:" in out and "env:" in out and "kont:" in out
+    assert "result:" in format_state(trace[-1])
+    assert any("print -> <dot> -> [13, 14]" in format_state(x) for x in trace)

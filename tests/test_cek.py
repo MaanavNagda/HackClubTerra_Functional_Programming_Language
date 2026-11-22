@@ -1,4 +1,4 @@
-#56/56 tests passed successfully
+#67/67tests passed successfully
 #Full test suite reran on 15.11.26 @10.43, all passed successfully
 
 
@@ -365,6 +365,40 @@ def test_machine_commit_effect_list():
     assert run_machine(source)[0][1].name == run(source)[0][1].name
 
 
+#Oracle tests on dot
+#Following tests run on 22.11.26
+#All passed successfully on 22.11.26 @21.22
+def test_machine_dot_list():
+    source = "[13,14].print"
+    assert run_machine(source)[0] == run(source)[0]
+    assert run_machine(source)[0] ==[13,14]
+
+
+def test_machine_dot_rejected_number():
+    source = "13.print"
+    with pytest.raises(Exception):
+        run_machine(source)[0]
+    with pytest.raises(Exception):
+        run(source)[0]
+
+def test_machine_dot_rejected_string():
+    source = "\"13\".print"
+    with pytest.raises(Exception):
+        run_machine(source)[0]
+    with pytest.raises(Exception):
+        run(source)[0]
+
+def test_machine_dot_bool_rejected():
+    source = "true.print"
+    with pytest.raises(Exception):
+        run_machine(source)[0]
+    with pytest.raises(Exception):
+        run(source)[0]
+
+def test_machine_dot_function():
+    source = "let f = fn(x){x}\n f.print"
+    assert run_machine(source)[0] is not None
+    assert run(source)[0] is not None
 
 
 
