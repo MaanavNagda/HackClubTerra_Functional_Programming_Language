@@ -115,6 +115,9 @@ class Lexer:
         word = ""
         while self.peek() is not None and (self.peek().isalnum() or self.peek() == '_'):
             word += self.advance()
+        if self.peek() == "!" and self.peek_next() != "=":
+            word += "!"
+            self.advance()
         self.emit(KEYWORDS.get(word, TokenType.IDENT), word, start_line, start_col)
 
     def read_string(self, start_line, start_col):

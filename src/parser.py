@@ -6,7 +6,13 @@ from .ast_nodes import Let, BinOp, Number, Var, If, Bool, FnDef, Call, Lambda, S
 
 
 #list of reserved names that the users cannot bind, which are the builtin keywords
-RESERVED = {"print"}
+RESERVED = {"print",
+            "dispatch!",
+            "reroute!",
+            "page!",
+            "write!",
+            "commit!"
+            }
 
 
 class Parser:

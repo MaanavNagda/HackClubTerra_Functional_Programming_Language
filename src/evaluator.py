@@ -17,15 +17,36 @@ class Builtin():
     def __init__(self, name):
         self.name = name
 
+class Effect():
+    def __init__(self, name, args):
+        self.name = name
+        self.args = args
+
+    
 
 #This is the builtins taht every program starts with:
-BUILTINS = {"print": Builtin("print")}
+BUILTINS = {"print": Builtin("print"),
+            "dispatch!": Builtin("dispatch!"),
+            "reroute!": Builtin("reroute!"),
+             "page!": Builtin("page!"),
+             "write!": Builtin("write!"),
+             "commit!": Builtin("commit!")
+            }
 
 #This runs the actual implementation of the builtin. It is shared with the machien so that both engines agree
 def call_builtin(name, arg):
     if name == "print":
         print(arg)
         return arg #This returns the variable so that the pipelines keep flowing
+    if name == "dispatch!" or name == "reroute!" or name == "page!" or name == "write!":
+        return Effect(name, (arg,))
+    if name == "commit!":
+        if isinstance(arg, list):
+            for each in arg:
+                print(each.name, each.args)
+        else:
+            print(arg.name, arg.args)
+        return arg
     else:
         raise Exception(f"unknown builtin {name}") #All builtins are defined above, and so if it doesn't match it, then an error is thrown
 
