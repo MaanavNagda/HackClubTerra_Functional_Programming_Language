@@ -17,11 +17,13 @@ class Builtin():
     def __init__(self, name):
         self.name = name
 
+#An effect is a description of an action, not the action itself. Scenario builtins prodcue these, and commit! is what performs them. This allows the actions to be stored when using parallelisation, so only the best line's commands get executed, rather than having to execute everyon branches' cmmands, which is important for real-world applications
 class Effect():
     def __init__(self, name, args):
         self.name = name
         self.args = args
 
+#A partial application - a builtin that has collected some, but not all of its arguments (map and filter are examples of thsi)
 class Partial():
     #a builtin that has collected some but not all of its arguments
     #Map produces a partial of map and the function, as the function still waits for the lsit
@@ -29,6 +31,7 @@ class Partial():
         self.name = name
         self.args = args
 
+    #collects one more argument, if arity is met, runs the builtin's real implementation (<map> applies fn to every element, and <filter> keeps truthy results)
     def step(self, arg):
         newArgs = self.args + (arg, )
         if len(newArgs) < BUILTIN_ARITY[self.name]:
@@ -54,6 +57,7 @@ class Partial():
             return result
     
 
+#Builtins that take more than one argument - callign one returns a Partial instead of running, until enough args are collected
 BUILTIN_ARITY = {"<map>": 2,
                  "<filter>": 2,}
 
@@ -75,8 +79,10 @@ def call_builtin(name, arg):
     if name == "print":
         print(arg)
         return arg #This returns the variable so that the pipelines keep flowing
+    #Effect builtins only describe the action - they runturn an Effect value, and NEVER perform it 
     if name == "dispatch!" or name == "reroute!" or name == "page!" or name == "write!":
         return Effect(name, (arg,))
+    #commit! actually performs the effects - current version prints them as a stub; a list of the effects commited in order (full version todo)
     if name == "commit!":
         if isinstance(arg, list):
             for each in arg:
@@ -84,17 +90,20 @@ def call_builtin(name, arg):
         else:
             print(arg.name, arg.args)
         return arg
+    #The runtime guard behind x.name - only closures, builtins, and lists may be dot receivers; scalars like strings and numbers are rejected
     if name == "<dot>":
         if isinstance(arg, closure) or isinstance(arg, Builtin) or isinstance(arg, list):
             return arg
         else:
             raise Exception("...")
+    #multi-arg builtins start partial application, the first call simply collects the argument
     if name in BUILTIN_ARITY:
         return Partial(name, (arg,))
     else:
         raise Exception(f"unknown builtin {name}") #All builtins are defined above, and so if it doesn't match it, then an error is thrown
 
 
+#appllies any callable value: builtin runs call_builtin , Partial collects another arg, and closure binds param and runs its body
 def call_value(func, arg):
     if isinstance(func, Builtin):
         return call_builtin(func.name, arg)
@@ -115,6 +124,7 @@ def apply_op(op, left, right):
         if right == 0:
             raise Exception(f"division by {right} error")
         return left/right
+    #++ appends rather than adds - lists concatenate, and non-lists get wrapped so anythign can be appended to a list
     if op == "++":
         if isinstance(left, list):
             l = left
@@ -167,6 +177,7 @@ def evaluate(node, env):
         return node.value #boolean literals also evaluate to themselves
     if isinstance(node, Str):
         return node.value
+    #each element is evaluated, and the results collected into a list value
     if isinstance(node, List):
         return [evaluate(element, env) for element in node.elements]
     if isinstance(node, If):
@@ -212,6 +223,7 @@ def run_program(statements, env):
             newEnv[statement.name] =  newClosure
             env = newEnv
             result = newClosure
+        #checkpoint pushes a snaphsot of the curret env onto the <trail> list stored inside env itself, hard capped at 100
         elif isinstance(statement, Checkpoint):
             try:
                 trail = env["<trail>"]
@@ -221,6 +233,7 @@ def run_program(statements, env):
                 raise Exception(f"checkpoint limit reached")
             env = {**env, "<trail>":trail + [env]}
             result  = None
+        #rewind restores the most recent snapshot; the trail is rpeserved so that the checkpoint remains reachable
         elif isinstance(statement, Rewind):
             try:
                 trail = env["<trail>"]

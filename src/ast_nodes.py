@@ -56,24 +56,27 @@ class Bool:
     line: int
     col: int
 
-
+#A string literal, the text between double quotes; \ escapes were already resolved in the lexer
 @dataclass(frozen = True)
 class Str:
     value: str
     line:int
     col: int
 
+#A list literal - [a,b,c]; hetereogenous by desing, elements can be a mix of datatypes
 @dataclass(frozen=True)
 class List:
     elements:list
     line:int
     col:int
 
+#The checkpoint keyword - snapshots the env so rewind can restore it later; a statement, not an expression
 @dataclass(frozen=True)
 class Checkpoint:
     line:int
     col:int
 
+#The reqind keyword, restores the most recent checkpointed env' a statement, not an expression
 @dataclass(frozen=True)
 class Rewind:
     line:int

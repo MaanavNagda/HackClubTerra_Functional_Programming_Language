@@ -59,17 +59,19 @@ class Discard:
     restStmts: list
     savedEnv:object
 
-
+#collecting list elements left to right - restExpres still to evaluate, accValues already collected
 @dataclass(frozen=True)
 class ListKont:
     restExprs:list
     accValues:object
     savedEnv:object
 
+#checkpoint's work is deferred to a kont frame - when it pops, the evn snaphsot is pushed onto the trail
 @dataclass(frozen=True)
 class CheckpointKont:
     restStmts:list
 
+#rewind's work is defferred in the same way - when it pops the most recent snapshot is restored
 @dataclass(frozen=True)
 class RewindKont:
     restStmts:list
@@ -119,8 +121,10 @@ def step(control, env, kont):
             env2[s.name] = C
             C.env = env2
             return (Body(rest), env2, kont)
+        #cehckpoint is a statement, not an expression - it pushes a frame so the snapshot happens at pop time, then continues with restStmts
         if isinstance(s, Checkpoint):
             return (None, env, [CheckpointKont(rest)] + kont)
+        #rewind pushes its frame the same way - the env restore happens at pop time
         if isinstance(s, Rewind):
             return (None, env, [RewindKont(rest)] + kont)
         if rest:
@@ -165,6 +169,7 @@ def step(control, env, kont):
             return (Body(frame.restStmts), env2, kont)
         if isinstance(frame, Discard):
             return (Body(frame.restStmts), frame.savedEnv, kont)
+        #checkpoint pops: snapshot the current env onto the <trail> lists inside env itself, capped at 100
         if isinstance(frame, CheckpointKont):
             try:
                 trail = env["<trail>"]
@@ -174,6 +179,7 @@ def step(control, env, kont):
                 raise Exception(f"checkpoint limit reached")
             env2 = {**env, "<trail>": trail + [env]}
             return (Body(frame.restStmts), env2, kont)
+        #rewind pops : restores env from trail[-1]. sp the checkpoint stays reachable. Empty trail is an error
         if isinstance(frame, RewindKont):
             try:
                 trail = env["<trail>"]

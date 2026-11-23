@@ -46,6 +46,7 @@ class Lexer:
         self.tokens.append(Token(ttype, value, start_line, start_col))
 
 
+    #main loop - skips whitespace (whitespace, newlines, ;; comments), dispatches on teh current character, and ends by emitting EOF, which is the signal that we have ended
     def tokenize(self):
         #This is to loop until the input is exhausted
         while self.peek() is not None:
@@ -84,12 +85,16 @@ class Lexer:
                 self.advance()
                 self.advance() #BOTH characters need consuming, and so advance is called twice instead of the usual once.
             elif char.isdigit():
+                #numbers go through read number, which decides whether it is an integer or a float
                 self.read_number(start_line, start_col)
             elif char.isalpha() or char == '_':
+                #indetifiers and keywords go through read_identifier, which checks KEYWORDS onyl after reading the whole world
                 self.read_identifier(start_line, start_col)
             elif char == '"':
+                #strings go through read_strigns which handles backslash escapes
                 self.read_string(start_line, start_col)
             elif char in SINGLE_CHAR_TOKENS:
+                #single character tokens emit directly; ( and [ alse raise paren_depth, which is what gates newline emission at depth 0
                 self.emit(SINGLE_CHAR_TOKENS[char], char, start_line, start_col)
                 if char == "(" or char == "[":
                     self.paren_depth += 1
@@ -102,12 +107,12 @@ class Lexer:
         self.emit(TokenType.EOF, None, self.line, self.col)
         return self.tokens 
 
-    #This is for digits - one NUMBER token (an integer value, not a raw text string)
+    #digits become one NUMBEr token, an int normally, or a float when a . is immediately preceded and immerdiately followed by a digit
     def read_number(self, start_line, start_col):
         digits = ""
         while self.peek() is not None and self.peek().isdigit():
             digits += self.advance()
-
+        #only read . as part of the number when a digit follows it, otherwise it stays a DOT token for the . operator
         if self.peek() == "." and self.peek_next() is not None and self.peek_next().isdigit():
             digits += self.advance()
             while self.peek() is not None and self.peek().isdigit():
@@ -117,20 +122,19 @@ class Lexer:
             self.emit(TokenType.NUMBER, int(digits), start_line, start_col)
    
    
-   
-   
-   
     #This is for letters and digits, and it is the whole word first, and only then checks for key words
     #This order is needed as that stops things like an input of "letter" lexing as the key word "let" and then "ter", when in reality, it is not a keyword at all, but a separate word (letter)
     def read_identifier(self, start_line, start_col):
         word = ""
         while self.peek() is not None and (self.peek().isalnum() or self.peek() == '_'):
             word += self.advance()
+        #A trailing ! is part of the name (effect builtins like page!), but only when it is not !=, as that is the not equal operator, and must stay as as a double character token
         if self.peek() == "!" and self.peek_next() != "=":
             word += "!"
             self.advance()
         self.emit(KEYWORDS.get(word, TokenType.IDENT), word, start_line, start_col)
 
+    #Strings are singl-line, and \ escapes the next character, so if you want to type a quotation mark, ordinarily it would just end the string, but using a \ in front of it simply causes it to be read as text itself. This also applies to any character that might cause an issue with the string in any shape or form. Because \is used as an escape character, if we want to type it as part of the string, we simply use \\ as it is escaping itself essentially (this is the same as escaping any other character, but notable examle as it is escaping itself)
     def read_string(self, start_line, start_col):
         self.advance() #consumes the opening quote
         value = ""
