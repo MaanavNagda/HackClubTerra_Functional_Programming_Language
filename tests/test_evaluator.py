@@ -1,4 +1,4 @@
-#104/104 tests successfuly
+#117/117 tests successfuly
 #Full test suite reran on 15.11.26 @10.43, 98 passed successfully, 4 (test_let_sequence, test_line_commit, test_comment_only_line, test_token_positions) failed, tests need updating because of the newline fix.
 #Full test suite reran on 15.11.26 @11.02, all passed successfully
 
@@ -546,4 +546,58 @@ def test_dot_float_eval():
 
 
 
+#Evaluator tests on map & filter
+#Following tests run on 23.11.26
+#All passed successfully on 23.11.26 @00.57
+def test_map_basic():
+    result, env = run_program(Parser(Lexer("fn(x){x * 11}.map -> [13,14]").tokenize()).parse_program(), {})
+    assert result == [143,154]
 
+def test_map_with_named_function():
+    result, env = run_program(Parser(Lexer("let undecouple = fn(x){x * 11} \n undecouple.map -> [11,14] ").tokenize()).parse_program(), {})
+    assert result == [121,154]
+
+def test_partial_alone():
+    result, env = run_program(Parser(Lexer("fn(x){x}.map").tokenize()).parse_program(), {})
+    assert result.name == "<map>"
+    assert len(result.args) == 1
+
+def test_map_rejects_non_list():
+    with pytest.raises(Exception):
+        run_program(Parser(Lexer("fn(x){x}.map ->14").tokenize()).parse_program(), {})
+
+def test_map_rejects_non_function():
+    with pytest.raises(Exception):
+        run_program(Parser(Lexer("13.map").tokenize()).parse_program(), {})
+
+def test_filter_basic():
+    result, env = run_program(Parser(Lexer("fn(x){x>13}.filter ->[11,14,13]").tokenize()).parse_program(), {})
+    assert result == [14]
+
+def test_filter_all():
+    result, env = run_program(Parser(Lexer("fn(x){x>13}.filter -> [14,143,1432]").tokenize()).parse_program(), {})
+    assert result == [14,143,1432]
+
+def test_filter_none():
+    result, env = run_program(Parser(Lexer("fn(x){x>13}.filter -> [8,11,12]").tokenize()).parse_program(), {})
+    assert result == []
+
+def test_filter_rejects_non_list():
+    with pytest.raises(Exception):
+        run_program(Parser(Lexer("fn(x){x}.filter -> \"12\"").tokenize()).parse_program(), {})
+
+def test_map_arrow_banned():
+    with pytest.raises(Exception):
+        run_program(Parser(Lexer("map -> fn(x){x} -> [11,13]").tokenize()).parse_program(), {})
+
+def test_map_pipeline_banned():
+    with pytest.raises(Exception):
+        run_program(Parser(Lexer("[11,12] |> map -> fn(x){x}").tokenize()).parse_program(), {})
+
+def test_filter_arrow_banned():
+    with pytest.raises(Exception):
+        run_program(Parser(Lexer("filter -> fn(x){x}->[11]").tokenize()).parse_program(), {})
+
+def test_filter_pipeline_banned():
+    with pytest.raises(Exception):
+        run_program(Parser(Lexer("[11] |> filter -> fn(x){x}").tokenize()).parse_program(), {})

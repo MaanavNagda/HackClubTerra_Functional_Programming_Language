@@ -1,4 +1,4 @@
-#12/12 tests passed successfully
+#13/13 tests passed successfully
 
 
 from src.lexer import Lexer
@@ -151,3 +151,16 @@ def test_dot_trace_formats():
         assert "control:" in out and "env:" in out and "kont:" in out
     assert "result:" in format_state(trace[-1])
     assert any("print -> <dot> -> [13, 14]" in format_state(x) for x in trace)
+
+
+
+#Time travel tests on map and filter
+#Following tests run on 23.11.26
+#All passed successfully on 23.11.26 @00.56
+def test_map_trace_formats():
+    trace = run_stepped(Parser(Lexer("fn(x){x + 14}.map -> [11,13]").tokenize()).parse_program(), {})
+    for s in trace:
+        out = format_state(s)
+        assert "control:" in out and "env:" in out and "kont:" in out 
+    assert "result:" in format_state(trace[-1])
+    assert any("partial:map/1" in format_state(x) for x in trace)

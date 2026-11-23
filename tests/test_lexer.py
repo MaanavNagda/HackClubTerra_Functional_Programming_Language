@@ -1,4 +1,4 @@
-#40/40 tests successfuly
+#41/41 tests successfuly
 #Full test suite reran on 15.11.26 @10.43, 98 passed successfully, 4 (test_let_sequence, test_line_commit, test_comment_only_line, test_token_positions) failed, tests need updating because of the newline fix.
 #Full test suite reran on 15.11.26 @11.02, all passed successfully
 
@@ -272,7 +272,6 @@ def test_token_positions():
 
 
 
-
 #Lexer tests on dot
 #Following tests run on 22.11.26
 #All passed successfully on 22.11.26 @21.22
@@ -291,3 +290,17 @@ def test_dot_number_name():
     tokens = Lexer("13.print").tokenize() #Note even though invalid, it stil lexilises, and so still a useful test to run
     types = [t.type for t in tokens]
     assert types == [TokenType.NUMBER, TokenType.DOT, TokenType.IDENT, TokenType.EOF]
+
+
+
+
+
+#Lexer tests on map and filter
+#Following tests run on 21.11.22 
+#All passed successfully on 21.11.22 @00.56
+def test_map_filter_as_ident():
+    tokens = Lexer("map filter").tokenize()
+    types = [t.type for t in tokens]
+    assert types == [TokenType.IDENT, TokenType.IDENT, TokenType.EOF]
+    assert tokens[0].value == "map"
+    assert tokens[1].value == "filter"

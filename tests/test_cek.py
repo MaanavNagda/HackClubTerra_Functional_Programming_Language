@@ -1,4 +1,4 @@
-#67/67tests passed successfully
+#70/70tests passed successfully
 #Full test suite reran on 15.11.26 @10.43, all passed successfully
 
 
@@ -402,7 +402,23 @@ def test_machine_dot_function():
 
 
 
+#Oracle tests on map & filter
+#Following tests run on 23.11.26
+#All passed successfully on 23.11.26 @00.56
+def test_machine_map_basic():
+    source = "fn(x){x* 11}.map  -> [14,13]"
+    assert run_machine(source)[0] == run(source)[0]
+    assert run_machine(source)[0] == [154, 143]
 
+def test_machine_filter_basic():
+    source = "fn(x){x>13}.filter -> [11,14,13]"
+    assert run_machine(source)[0] == run(source)[0]
+    assert run_machine(source)[0] == [14]
+
+def test_machine_map_partial_trace():
+    source = "fn(x){x}.map"
+    assert run_machine(source)[0].name == run(source)[0].name
+    assert len(run_machine(source)[0].args) == len(run(source)[0].args)
 
 
 #Step tests (run only through the machine)
@@ -456,3 +472,6 @@ def test_step_arith_uses_rpn():
     control, env, kont = step(node, {}, [])
     assert control == 3
     assert not kont
+
+
+

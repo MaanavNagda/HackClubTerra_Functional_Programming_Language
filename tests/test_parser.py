@@ -1,4 +1,4 @@
-#37/37 tests successfuly
+#41/41 tests successfuly
 #Full test suite reran on 15.11.26 @10.43, 98 passed successfully, 4 (test_let_sequence, test_line_commit, test_comment_only_line, test_token_positions) failed, tests need updating because of the newline fix.
 #Full test suite reran on 15.11.26 @11.02, all passed successfully
 
@@ -320,7 +320,25 @@ def test_dot_parses():
     assert root.arg.func.name == "<dot>"
 
 
+#Parser tests on map & filter
+#Following tests run on 23.11.26
+#All passed successfully on 23.11.26 @00.57
+def test_map_parses():
+    ast = Parser(Lexer("let f = fn(x){x} \n f.map ->[13, 14]").tokenize()).parse_program()
+    root= ast[1]
+    assert isinstance(root, Call)
+    assert root.func.func.name == "<map>"
 
+def test_filter_parses():
+    ast = Parser(Lexer("let f = fn(x){x}\n f.filter -> [14,13]").tokenize()).parse_program()
+    root= ast[1]
+    assert isinstance(root, Call)
+    assert root.func.func.name == "<filter>"
 
+def test_map_reserved_parse():
+    with pytest.raises(Exception):
+        Parser(Lexer("let map = 13").tokenize()).parse_program()
 
-
+def test_filter_reserved_parse():
+    with pytest.raises(Exception):
+        Parser(Lexer("let filter = 14").tokenize()).parse_program()
