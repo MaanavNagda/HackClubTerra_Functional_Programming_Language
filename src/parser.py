@@ -16,6 +16,11 @@ RESERVED = {"print",
             "filter"
             }
 
+#names that only exist as x.names, never as plain -> or |>
+DOT_ONLY = {
+    "map",
+    "filter"
+}
 
 class Parser:
     #tokens is the lexer's output list, and it ends with an EOF token
@@ -224,8 +229,11 @@ class Parser:
         while self.peek().type ==TokenType.DOT:
             self.advance()
             name_tok = self.expect(TokenType.IDENT)
+            target = name_tok.value
+            if target in DOT_ONLY:
+                target = "<" + target  + ">"
             expr = Call(
-                Var(name_tok.value, name_tok.line, name_tok.col),
+                Var(target, name_tok.line, name_tok.col),
                 Call(
                     Var("<dot>", name_tok.line, name_tok.col),
                     expr,

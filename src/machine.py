@@ -228,7 +228,7 @@ def fmt_val(v):
     if isinstance(v, int):
         return str(v)
     if isinstance(v, Partial):
-        return "partial:" + v.name +"/" + str(len(v.args))
+        return "partial:" + v.name.strip("<>") +"/" + str(len(v.args))
     if v is None:
         return "none"
     if isinstance(v, Builtin):

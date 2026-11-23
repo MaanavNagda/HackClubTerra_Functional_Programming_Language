@@ -33,20 +33,20 @@ class Partial():
         newArgs = self.args + (arg, )
         if len(newArgs) < BUILTIN_ARITY[self.name]:
             return Partial(self.name, newArgs)
-        if self.name == "map":
+        if self.name == "<map>":
             fn = newArgs[0]
             lst = newArgs[1]
             if not isinstance(lst, list):
-                raise Exception(f"{self.name} needs a list")
+                raise Exception(f"{self.name.strip("<>")} needs a list")
             result = []
             for x in lst:
                 result.append(call_value(fn, x))
             return result
-        elif self.name == "filter":
+        elif self.name == "<filter>":
             fn = newArgs[0]
             lst = newArgs[1]
             if not isinstance(lst, list):
-                raise Exception(f"{self.name} needs a list")
+                raise Exception(f"{self.name.strip("<>")} needs a list")
             result = []
             for x in lst:
                 if call_value(fn, x):
@@ -54,8 +54,8 @@ class Partial():
             return result
     
 
-BUILTIN_ARITY = {"map": 2,
-                 "filter": 2,}
+BUILTIN_ARITY = {"<map>": 2,
+                 "<filter>": 2,}
 
 
 #This is the builtins that every program starts with:
@@ -66,8 +66,8 @@ BUILTINS = {"print": Builtin("print"),
              "write!": Builtin("write!"),
              "commit!": Builtin("commit!"),
              "<dot>": Builtin("<dot>"),
-             "map": Builtin("map"),
-             "filter": Builtin("filter")
+             "<map>": Builtin("<map>"),
+             "<filter>": Builtin("<filter>")
             }
 
 #This runs the actual implementation of the builtin. It is shared with the machien so that both engines agree
